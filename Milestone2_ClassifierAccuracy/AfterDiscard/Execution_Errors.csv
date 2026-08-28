@@ -1,0 +1,49 @@
+Protocol,Release,Classifier,FS,Balancing,Seed,Fold,Error
+WalkForward-BeforeDiscard,13,RandomForest,No,No,-1,-1,Empty training or testing set
+WalkForward-BeforeDiscard,13,RandomForest,No,Yes,-1,-1,Empty training or testing set
+WalkForward-BeforeDiscard,13,RandomForest,Yes,No,-1,-1,Empty training or testing set
+WalkForward-BeforeDiscard,13,RandomForest,Yes,Yes,-1,-1,Empty training or testing set
+WalkForward-BeforeDiscard,13,NaiveBayes,No,No,-1,-1,Empty training or testing set
+WalkForward-BeforeDiscard,13,NaiveBayes,No,Yes,-1,-1,Empty training or testing set
+WalkForward-BeforeDiscard,13,NaiveBayes,Yes,No,-1,-1,Empty training or testing set
+WalkForward-BeforeDiscard,13,NaiveBayes,Yes,Yes,-1,-1,Empty training or testing set
+WalkForward-BeforeDiscard,13,IBk,No,No,-1,-1,Empty training or testing set
+WalkForward-BeforeDiscard,13,IBk,No,Yes,-1,-1,Empty training or testing set
+WalkForward-BeforeDiscard,13,IBk,Yes,No,-1,-1,Empty training or testing set
+WalkForward-BeforeDiscard,13,IBk,Yes,Yes,-1,-1,Empty training or testing set
+WalkForward-AfterDiscard,6,RandomForest,No,No,-1,-1,Test release discarded because it does not contain both classes
+WalkForward-AfterDiscard,13,RandomForest,No,No,-1,-1,Empty training or testing set
+WalkForward-AfterDiscard,20,RandomForest,No,No,-1,-1,Test release discarded because it does not contain both classes
+WalkForward-AfterDiscard,6,RandomForest,No,Yes,-1,-1,Test release discarded because it does not contain both classes
+WalkForward-AfterDiscard,13,RandomForest,No,Yes,-1,-1,Empty training or testing set
+WalkForward-AfterDiscard,20,RandomForest,No,Yes,-1,-1,Test release discarded because it does not contain both classes
+WalkForward-AfterDiscard,6,RandomForest,Yes,No,-1,-1,Test release discarded because it does not contain both classes
+WalkForward-AfterDiscard,13,RandomForest,Yes,No,-1,-1,Empty training or testing set
+WalkForward-AfterDiscard,20,RandomForest,Yes,No,-1,-1,Test release discarded because it does not contain both classes
+WalkForward-AfterDiscard,6,RandomForest,Yes,Yes,-1,-1,Test release discarded because it does not contain both classes
+WalkForward-AfterDiscard,13,RandomForest,Yes,Yes,-1,-1,Empty training or testing set
+WalkForward-AfterDiscard,20,RandomForest,Yes,Yes,-1,-1,Test release discarded because it does not contain both classes
+WalkForward-AfterDiscard,6,NaiveBayes,No,No,-1,-1,Test release discarded because it does not contain both classes
+WalkForward-AfterDiscard,13,NaiveBayes,No,No,-1,-1,Empty training or testing set
+WalkForward-AfterDiscard,20,NaiveBayes,No,No,-1,-1,Test release discarded because it does not contain both classes
+WalkForward-AfterDiscard,6,NaiveBayes,No,Yes,-1,-1,Test release discarded because it does not contain both classes
+WalkForward-AfterDiscard,13,NaiveBayes,No,Yes,-1,-1,Empty training or testing set
+WalkForward-AfterDiscard,20,NaiveBayes,No,Yes,-1,-1,Test release discarded because it does not contain both classes
+WalkForward-AfterDiscard,6,NaiveBayes,Yes,No,-1,-1,Test release discarded because it does not contain both classes
+WalkForward-AfterDiscard,13,NaiveBayes,Yes,No,-1,-1,Empty training or testing set
+WalkForward-AfterDiscard,20,NaiveBayes,Yes,No,-1,-1,Test release discarded because it does not contain both classes
+WalkForward-AfterDiscard,6,NaiveBayes,Yes,Yes,-1,-1,Test release discarded because it does not contain both classes
+WalkForward-AfterDiscard,13,NaiveBayes,Yes,Yes,-1,-1,Empty training or testing set
+WalkForward-AfterDiscard,20,NaiveBayes,Yes,Yes,-1,-1,Test release discarded because it does not contain both classes
+WalkForward-AfterDiscard,6,IBk,No,No,-1,-1,Test release discarded because it does not contain both classes
+WalkForward-AfterDiscard,13,IBk,No,No,-1,-1,Empty training or testing set
+WalkForward-AfterDiscard,20,IBk,No,No,-1,-1,Test release discarded because it does not contain both classes
+WalkForward-AfterDiscard,6,IBk,No,Yes,-1,-1,Test release discarded because it does not contain both classes
+WalkForward-AfterDiscard,13,IBk,No,Yes,-1,-1,Empty training or testing set
+WalkForward-AfterDiscard,20,IBk,No,Yes,-1,-1,Test release discarded because it does not contain both classes
+WalkForward-AfterDiscard,6,IBk,Yes,No,-1,-1,Test release discarded because it does not contain both classes
+WalkForward-AfterDiscard,13,IBk,Yes,No,-1,-1,Empty training or testing set
+WalkForward-AfterDiscard,20,IBk,Yes,No,-1,-1,Test release discarded because it does not contain both classes
+WalkForward-AfterDiscard,6,IBk,Yes,Yes,-1,-1,Test release discarded because it does not contain both classes
+WalkForward-AfterDiscard,13,IBk,Yes,Yes,-1,-1,Empty training or testing set
+WalkForward-AfterDiscard,20,IBk,Yes,Yes,-1,-1,Test release discarded because it does not contain both classes

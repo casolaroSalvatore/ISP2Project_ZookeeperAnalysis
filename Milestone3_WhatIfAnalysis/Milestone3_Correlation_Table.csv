@@ -1,0 +1,24 @@
+Variable,Mean A,Mean B,Mean C,Correlation (rho) NSmells,Correlation (rho) Defectiveness
+Release_ID,12.18,12.10,12.30,-0.06*,-0.01
+Size_LOC,150.84,193.59,92.71,0.63*,0.32*
+N_Methods,7.18,10.64,2.48,0.55*,0.40*
+NR_Release,0.46,0.65,0.20,0.22*,0.35*
+NR_Total,6.23,8.87,2.64,0.42*,0.42*
+Nfix_Release,0.42,0.59,0.18,0.22*,0.35*
+Nfix_Total,5.42,7.68,2.34,0.42*,0.42*
+Nauth_Release,0.26,0.37,0.11,0.22*,0.35*
+Nauth_Total,1.82,2.47,0.94,0.43*,0.45*
+MAX_LOC_Added_Release,13.44,20.57,3.74,0.21*,0.33*
+Churn_Release,24.61,39.54,4.32,0.22*,0.34*
+Churn_Total,333.04,536.31,56.67,0.61*,0.48*
+AVG_Churn_Release,10.38,15.69,3.16,0.21*,0.33*
+MAX_ChgSet_Release,13.31,16.15,9.45,0.20*,0.31*
+N_Multi_Release,0.45,0.64,0.20,0.22*,0.35*
+Sum_Multi_ChgSet_Release,29.70,37.15,19.58,0.20*,0.32*
+Age_Weeks,79.12,98.27,53.07,0.31*,0.26*
+Weighted_Age,1525.43,2568.85,106.81,0.23*,0.35*
+ND,1.46,1.69,1.14,0.20*,0.31*
+Entropy,0.55,0.70,0.35,0.19*,0.30*
+Exp,20.95,28.48,10.72,0.21*,0.34*
+Historical_Bug_Density,0.66,0.80,0.46,0.23*,0.15*
+NSmells,6.14,0.00,0.00,-,0.34*

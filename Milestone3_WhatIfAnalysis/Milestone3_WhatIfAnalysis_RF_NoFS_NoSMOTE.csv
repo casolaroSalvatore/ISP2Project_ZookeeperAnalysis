@@ -1,0 +1,21 @@
+Classifier,Feature_Selection,SMOTE,Normalization
+RandomForest,No,No,Yes
+
+Dataset,Instances,Actual_Buggy,Predicted_Buggy,TP,FP,FN,TN
+Dataset A,7520,1117,1115,1115,0,2,6403
+Dataset C,3187,114,112,112,0,2,3073
+Dataset B+,4333,1003,1003,1003,0,0,3330
+Dataset B,4333,1003,928,914,14,89,3316
+
+Transition,Count
+YES_TO_NO,89
+NO_TO_YES,14
+YES_TO_YES,914
+NO_TO_NO,3316
+NET_POSITIVE_REDUCTION,75
+PREVENTABLE_ACTUAL_BUGGY,89
+
+Metric,Value
+Preventable_Out_Of_Actual_Buggy_BPlus,8.873380%
+Preventable_Out_Of_Predicted_Buggy_BPlus,8.873380%
+Preventable_Out_Of_Actual_Buggy_A,7.967771%

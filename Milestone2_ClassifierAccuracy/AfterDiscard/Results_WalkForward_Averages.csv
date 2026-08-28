@@ -1,0 +1,13 @@
+Dataset,Protocol,Classifier,FS,Balancing,Precision,Recall,AUC,Kappa,NPofB20,Valid_Runs
+ZooKeeper,WalkForward,RandomForest,No,No,0.7990,0.8032,0.8671,0.5294,0.2190,17
+ZooKeeper,WalkForward,RandomForest,No,Yes,0.7428,0.8772,0.8701,0.4866,0.1889,17
+ZooKeeper,WalkForward,RandomForest,Yes,No,0.7134,0.8176,0.8366,0.4448,0.2005,17
+ZooKeeper,WalkForward,RandomForest,Yes,Yes,0.6891,0.8742,0.8336,0.4241,0.2059,17
+ZooKeeper,WalkForward,NaiveBayes,No,No,0.7230,0.7537,0.8053,0.3789,0.1780,17
+ZooKeeper,WalkForward,NaiveBayes,No,Yes,0.7156,0.7686,0.8058,0.3769,0.1796,17
+ZooKeeper,WalkForward,NaiveBayes,Yes,No,0.6861,0.7871,0.8042,0.3290,0.1843,17
+ZooKeeper,WalkForward,NaiveBayes,Yes,Yes,0.6607,0.8020,0.7952,0.2937,0.2098,17
+ZooKeeper,WalkForward,IBk,No,No,0.6346,0.7945,0.6448,0.2694,0.2107,17
+ZooKeeper,WalkForward,IBk,No,Yes,0.6187,0.8182,0.6340,0.2540,0.2128,17
+ZooKeeper,WalkForward,IBk,Yes,No,0.6149,0.7842,0.6309,0.2484,0.1960,17
+ZooKeeper,WalkForward,IBk,Yes,Yes,0.6006,0.8000,0.6093,0.2133,0.2062,17
