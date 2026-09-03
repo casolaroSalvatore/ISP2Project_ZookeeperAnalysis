@@ -1,0 +1,3 @@
+# Local configuration and secrets
+.env
+config.properties
