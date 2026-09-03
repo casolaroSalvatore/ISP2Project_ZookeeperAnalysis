@@ -16,42 +16,63 @@ import weka.filters.supervised.instance.SMOTE;
 import weka.filters.unsupervised.attribute.Normalize;
 import weka.filters.unsupervised.attribute.Remove;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-import java.util.Random;
+import java.io.*;
+import java.util.*;
 
 public class WekaProjectEvaluator {
 
-    private static final String FULL_DATASET = "C:\\Users\\casol\\Desktop\\ISPW2\\ISP2Project_ZookeeperAnalysis\\" + "Milestone1_DatasetCreation\\ZOOKEEPER_Final_Dataset.csv";
+    private static String FULL_DATASET;
 
-    private static final String BEFORE_DISCARD_DIR = "C:\\Users\\casol\\Desktop\\ISPW2\\ISP2Project_ZookeeperAnalysis\\" + "Milestone2_ClassifierAccuracy\\BeforeDiscard";
+    private static String BEFORE_DISCARD_DIR;
 
-    private static final String AFTER_DISCARD_DIR = "C:\\Users\\casol\\Desktop\\ISPW2\\ISP2Project_ZookeeperAnalysis\\" + "Milestone2_ClassifierAccuracy\\AfterDiscard";
+    private static String AFTER_DISCARD_DIR;
 
-    private static final String RESULTS_10FOLD_BEFORE = BEFORE_DISCARD_DIR + "\\Results_10x10Fold_Averages.csv";
+    private static String RESULTS_10FOLD_BEFORE;
+    private static String RESULTS_WF_BEFORE;
 
-    private static final String RESULTS_WF_BEFORE = BEFORE_DISCARD_DIR + "\\Results_WalkForward_Averages.csv";
+    private static String RESULTS_10FOLD_AFTER;
+    private static String RESULTS_WF_AFTER;
 
-    private static final String RESULTS_10FOLD_AFTER = AFTER_DISCARD_DIR + "\\Results_10x10Fold_Averages.csv";
+    private static String DETAILS_10FOLD_BEFORE;
+    private static String DETAILS_WF_BEFORE;
 
-    private static final String RESULTS_WF_AFTER = AFTER_DISCARD_DIR + "\\Results_WalkForward_Averages.csv";
+    private static String DETAILS_10FOLD_AFTER;
+    private static String DETAILS_WF_AFTER;
 
-    private static final String DETAILS_10FOLD_BEFORE = BEFORE_DISCARD_DIR + "\\Results_10x10Fold_PerRelease.csv";
+    private static String ERRORS_FILE;
 
-    private static final String DETAILS_WF_BEFORE = BEFORE_DISCARD_DIR + "\\Results_WalkForward_PerRelease.csv";
+    private static PrintWriter errorWriter;
 
-    private static final String DETAILS_10FOLD_AFTER = AFTER_DISCARD_DIR + "\\Results_10x10Fold_PerRelease.csv";
+    static {
+        try {
+            Properties configProps = new Properties();
+            try (InputStream input = new FileInputStream("config.properties")) {
+                configProps.load(input);
+            }
 
-    private static final String DETAILS_WF_AFTER = AFTER_DISCARD_DIR + "\\Results_WalkForward_PerRelease.csv";
+            FULL_DATASET = configProps.getProperty("weka.dataset.csv");
+            BEFORE_DISCARD_DIR = configProps.getProperty("weka.before.discard.dir");
+            AFTER_DISCARD_DIR = configProps.getProperty("weka.after.discard.dir");
 
-    private static final String ERRORS_FILE = AFTER_DISCARD_DIR + "\\Execution_Errors.csv";
+            if (FULL_DATASET == null || BEFORE_DISCARD_DIR == null || AFTER_DISCARD_DIR == null) {
+                throw new RuntimeException("CRITICAL ERROR: Missing parameters in config.properties.");
+            }
+
+            RESULTS_10FOLD_BEFORE = BEFORE_DISCARD_DIR + "\\Results_10x10Fold_Averages.csv";
+            RESULTS_WF_BEFORE = BEFORE_DISCARD_DIR + "\\Results_WalkForward_Averages.csv";
+            RESULTS_10FOLD_AFTER = AFTER_DISCARD_DIR + "\\Results_10x10Fold_Averages.csv";
+            RESULTS_WF_AFTER = AFTER_DISCARD_DIR + "\\Results_WalkForward_Averages.csv";
+            DETAILS_10FOLD_BEFORE = BEFORE_DISCARD_DIR + "\\Results_10x10Fold_PerRelease.csv";
+            DETAILS_WF_BEFORE = BEFORE_DISCARD_DIR + "\\Results_WalkForward_PerRelease.csv";
+            DETAILS_10FOLD_AFTER = AFTER_DISCARD_DIR + "\\Results_10x10Fold_PerRelease.csv";
+            DETAILS_WF_AFTER = AFTER_DISCARD_DIR + "\\Results_WalkForward_PerRelease.csv";
+            ERRORS_FILE = AFTER_DISCARD_DIR + "\\Execution_Errors.csv";
+
+        } catch (IOException e) {
+
+            throw new RuntimeException("Unable to load config.properties.", e);
+        }
+    }
 
     private static final String PROJECT_COLUMN = "Project_Name";
     private static final String CLASS_COLUMN = "Class_Name";
@@ -66,8 +87,6 @@ public class WekaProjectEvaluator {
 
     private static final boolean[] FS_OPTIONS = {false, true};
     private static final boolean[] BALANCING_OPTIONS = {false, true};
-
-    private static PrintWriter errorWriter;
 
     public static void main(String[] args) throws Exception {
 
@@ -219,7 +238,7 @@ public class WekaProjectEvaluator {
 
                         for (int releaseId : releases) {
 
-                            Instances releaseData = subsetByRelease(allData, releaseId);
+                            Instances releaseData = subsetByReleaseAndPositiveChurn(allData, releaseId);
 
                             if (releaseData.numInstances() < FOLDS) {
                                 logError("10x10-" + mode, releaseId, classifierNames[modelIndex], fsValue, balancingValue, -1, -1, "Less than " + FOLDS + " instances");
