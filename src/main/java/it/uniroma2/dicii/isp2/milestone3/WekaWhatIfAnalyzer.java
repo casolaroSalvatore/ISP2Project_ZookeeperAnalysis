@@ -52,17 +52,13 @@ public class WekaWhatIfAnalyzer {
         System.out.println("Random Forest, no Feature Selection, no SMOTE");
         System.out.println("====================================================");
 
-        /*
-         * 1. Load Dataset A.
-         */
+        // Load Dataset A
         Instances datasetA = loadDataset(FULL_DATASET);
         validateDataset(datasetA);
 
         int smellIndex = datasetA.attribute(SMELL_COLUMN).index();
 
-        /*
-         * 2. Construct C, B+ and B.
-         */
+        // Construct C, B+ and B
         DatasetCollection datasets = createWhatIfDatasets(datasetA, smellIndex);
 
         System.out.println("Datasets created:");
@@ -72,68 +68,38 @@ public class WekaWhatIfAnalyzer {
         System.out.println(" - Dataset B:  " + datasets.datasetB.numInstances() + " counterfactual instances");
 
         if (datasets.datasetBPlus.numInstances() != datasets.datasetB.numInstances()) {
-
             throw new IllegalStateException("B+ and B do not contain the same number of instances.");
         }
 
-        /*
-         * 3. Remove identifiers from all datasets.
-         *
-         * The Remove filter is learned/configured from Dataset A and
-         * then applied unchanged to A, C, B+ and B.
-         */
+        // Remove identifiers from all datasets
         DatasetCollection withoutIdentifiers = removeIdentifiers(datasetA, datasets.datasetC, datasets.datasetBPlus, datasets.datasetB);
 
-        /*
-         * 4. Normalize all numerical predictors.
-         *
-         * Normalize is parameterized from Dataset A and the same
-         * transformation is applied to C, B+ and B.
-         */
+        // Normalize all numerical predictors
         DatasetCollection normalized = normalizeDatasets(withoutIdentifiers.datasetA, withoutIdentifiers.datasetC, withoutIdentifiers.datasetBPlus, withoutIdentifiers.datasetB);
 
-        /*
-         * 5. Train the BClassifier on the complete Dataset A.
-         *
-         * Configuration selected from Milestone 2:
-         * - Random Forest
-         * - no Feature Selection
-         * - no SMOTE
-         * - normalization enabled
-         */
+        // Train the BClassifier on the complete Dataset A, Random Forest woth no Feature Selection, no SMOTE, normalization enabled
         Classifier bClassifierA = new RandomForest();
         bClassifierA.buildClassifier(normalized.datasetA);
 
         int yesIndex = getYesIndex(normalized.datasetA);
 
-        /*
-         * 6. Obtain the aggregate results for A, C, B+ and B.
-         */
+
+        // Obtain the aggregate results for A, C, B+ and B
         DatasetEvaluation resultsA = evaluateDataset(bClassifierA, normalized.datasetA, yesIndex);
-
         DatasetEvaluation resultsC = evaluateDataset(bClassifierA, normalized.datasetC, yesIndex);
-
         DatasetEvaluation resultsBPlus = evaluateDataset(bClassifierA, normalized.datasetBPlus, yesIndex);
-
         DatasetEvaluation resultsB = evaluateDataset(bClassifierA, normalized.datasetB, yesIndex);
 
-        /*
-         * 7. Calculate the aggregate Actual-versus-Expected
-         * results for the What-If Analysis.
-         */
+
+        // Calculate the aggregate Actual-versus-Expected results for the What-If Analysis.
 
         long estimatedAvoided = resultsBPlus.actualBuggy - resultsB.expectedBuggy;
-
         long predictedDrop = resultsBPlus.expectedBuggy - resultsB.expectedBuggy;
-
         double reductionBPlus = percentage(estimatedAvoided, resultsBPlus.actualBuggy);
-
         double overallReduction = percentage(estimatedAvoided, resultsA.actualBuggy);
-
         double predictionReduction = percentage(predictedDrop, resultsBPlus.expectedBuggy);
 
         printResults(resultsA, resultsBPlus, resultsB, resultsC, estimatedAvoided, reductionBPlus, overallReduction, predictedDrop, predictionReduction);
-
         writeSummary(resultsA, resultsBPlus, resultsB, resultsC, estimatedAvoided, reductionBPlus, overallReduction, predictedDrop, predictionReduction);
 
         System.out.println();
@@ -141,16 +107,10 @@ public class WekaWhatIfAnalyzer {
         System.out.println("Summary: " + OUTPUT_CSV);
     }
 
-    /*
-     * ==========================================================
-     * DATASET LOADING AND VALIDATION
-     * ==========================================================
-     */
 
+    // Dataset loading and validation
     private static Instances loadDataset(String path) throws Exception {
-
         try (BufferedReader reader = new BufferedReader(new FileReader(path))) {
-
             String header = reader.readLine();
 
             if (header == null) {
@@ -194,12 +154,8 @@ public class WekaWhatIfAnalyzer {
         }
     }
 
-    /*
-     * ==========================================================
-     * CREATION OF A, C, B+ AND B
-     * ==========================================================
-     */
 
+    // Creation of A, C, B+ AND B
     private static DatasetCollection createWhatIfDatasets(Instances datasetA, int smellIndex) {
 
         Instances datasetC = new Instances(datasetA, 0);
@@ -207,21 +163,15 @@ public class WekaWhatIfAnalyzer {
         Instances datasetB = new Instances(datasetA, 0);
 
         for (int i = 0; i < datasetA.numInstances(); i++) {
-
             Instance originalInstance = datasetA.instance(i);
-
             double smellValue = originalInstance.value(smellIndex);
 
             if (smellValue == 0.0) {
                 datasetC.add((Instance) originalInstance.copy());
-
             } else {
                 datasetBPlus.add((Instance) originalInstance.copy());
-
                 Instance counterfactualInstance = (Instance) originalInstance.copy();
-
                 counterfactualInstance.setValue(smellIndex, 0.0);
-
                 datasetB.add(counterfactualInstance);
 
             }
@@ -234,12 +184,8 @@ public class WekaWhatIfAnalyzer {
         return new DatasetCollection(datasetA, datasetC, datasetBPlus, datasetB);
     }
 
-    /*
-     * ==========================================================
-     * PRE-PROCESSING
-     * ==========================================================
-     */
 
+    // Pre-processing
     private static DatasetCollection removeIdentifiers(Instances datasetA, Instances datasetC, Instances datasetBPlus, Instances datasetB) throws Exception {
 
         int[] identifierIndices = {datasetA.attribute(PROJECT_COLUMN).index(), datasetA.attribute(CLASS_COLUMN).index(), datasetA.attribute(RELEASE_COLUMN).index()};
@@ -249,11 +195,8 @@ public class WekaWhatIfAnalyzer {
         remove.setInputFormat(datasetA);
 
         Instances filteredA = Filter.useFilter(datasetA, remove);
-
         Instances filteredC = Filter.useFilter(datasetC, remove);
-
         Instances filteredBPlus = Filter.useFilter(datasetBPlus, remove);
-
         Instances filteredB = Filter.useFilter(datasetB, remove);
 
         setClassToLastAttribute(filteredA, filteredC, filteredBPlus, filteredB);
@@ -268,46 +211,35 @@ public class WekaWhatIfAnalyzer {
         normalize.setInputFormat(datasetA);
 
         Instances normalizedA = Filter.useFilter(datasetA, normalize);
-
         Instances normalizedC = Filter.useFilter(datasetC, normalize);
-
         Instances normalizedBPlus = Filter.useFilter(datasetBPlus, normalize);
-
         Instances normalizedB = Filter.useFilter(datasetB, normalize);
 
         setClassToLastAttribute(normalizedA, normalizedC, normalizedBPlus, normalizedB);
-
         validateCompatibleHeaders(normalizedA, normalizedC, "A", "C");
-
         validateCompatibleHeaders(normalizedA, normalizedBPlus, "A", "B+");
-
         validateCompatibleHeaders(normalizedA, normalizedB, "A", "B");
 
         return new DatasetCollection(normalizedA, normalizedC, normalizedBPlus, normalizedB);
     }
 
     private static void setClassToLastAttribute(Instances... datasets) {
-
         for (Instances dataset : datasets) {
             dataset.setClassIndex(dataset.numAttributes() - 1);
         }
     }
 
     private static void validateCompatibleHeaders(Instances first, Instances second, String firstName, String secondName) {
-
         if (!first.equalHeaders(second)) {
             throw new IllegalStateException("Incompatible headers between " + firstName + " and " + secondName + ": " + first.equalHeadersMsg(second));
         }
     }
 
     private static int getYesIndex(Instances dataset) {
-
         int yesIndex = dataset.classAttribute().indexOfValue(POSITIVE_CLASS);
-
         if (yesIndex < 0) {
             throw new IllegalArgumentException("Positive class '" + POSITIVE_CLASS + "' not found.");
         }
-
         return yesIndex;
     }
 
@@ -318,19 +250,13 @@ public class WekaWhatIfAnalyzer {
         return ((double) numerator / denominator) * 100.0;
     }
 
-    /*
-     * ==========================================================
-     * AGGREGATE EVALUATION
-     * ==========================================================
-     */
-
+    // Aggregate evaluation
     private static DatasetEvaluation evaluateDataset(Classifier model, Instances dataset, int yesIndex) throws Exception {
 
         long actualBuggy = 0;
         long expectedBuggy = 0;
 
         for (int i = 0; i < dataset.numInstances(); i++) {
-
             Instance instance = dataset.instance(i);
 
             if ((int) instance.classValue() == yesIndex) {
@@ -338,7 +264,6 @@ public class WekaWhatIfAnalyzer {
             }
 
             double predictedClass = model.classifyInstance(instance);
-
             if ((int) predictedClass == yesIndex) {
                 expectedBuggy++;
             }
@@ -347,101 +272,63 @@ public class WekaWhatIfAnalyzer {
         return new DatasetEvaluation(dataset.numInstances(), actualBuggy, expectedBuggy);
     }
 
-    /*
-     * ==========================================================
-     * OUTPUT
-     * ==========================================================
-     */
-
+    // Output
     private static void printResults(DatasetEvaluation resultsA, DatasetEvaluation resultsBPlus, DatasetEvaluation resultsB, DatasetEvaluation resultsC, long estimatedAvoided, double reductionBPlus, double overallReduction, long predictedDrop, double predictionReduction) {
 
         System.out.println();
         System.out.println("ACTUAL AND EXPECTED RESULTS");
         System.out.println("--------------------------------------------------------------");
-
         System.out.printf("%-12s | %-10s | %-15s | %-15s%n", "Dataset", "Instances", "Actual buggy", "Expected buggy");
-
         System.out.println("--------------------------------------------------------------");
 
         printDatasetResult("A", resultsA, true);
-
         printDatasetResult("B+", resultsBPlus, true);
-
         printDatasetResult("B", resultsB, false);
-
         printDatasetResult("C", resultsC, true);
 
         System.out.println();
         System.out.println("AGGREGATE WHAT-IF RESULTS");
         System.out.println("--------------------------------------------------------------");
-
         System.out.println("Estimated avoided instances: " + estimatedAvoided);
-
         System.out.printf(Locale.US, "Reduction over actual buggy in B+: %.6f%%%n", reductionBPlus);
-
         System.out.printf(Locale.US, "Reduction over actual buggy in A: %.6f%%%n", overallReduction);
-
         System.out.println("Direct expected-prediction drop: " + predictedDrop);
-
         System.out.printf(Locale.US, "Prediction reduction over B+: %.6f%%%n", predictionReduction);
     }
 
     private static void printDatasetResult(String datasetName, DatasetEvaluation result, boolean actualObservable) {
-
         String actualValue = actualObservable ? String.valueOf(result.actualBuggy) : "N/A";
-
         System.out.printf(Locale.US, "%-12s | %-10d | %-15s | %-15d%n", datasetName, result.instances, actualValue, result.expectedBuggy);
     }
 
     private static void writeSummary(DatasetEvaluation resultsA, DatasetEvaluation resultsBPlus, DatasetEvaluation resultsB, DatasetEvaluation resultsC, long estimatedAvoided, double reductionBPlus, double overallReduction, long predictedDrop, double predictionReduction) throws Exception {
 
         try (PrintWriter writer = new PrintWriter(new FileWriter(OUTPUT_CSV))) {
-
             writer.println("Classifier,Feature_Selection,SMOTE,Normalization");
-
             writer.println("RandomForest,No,No,Yes");
-
             writer.println();
-
             writer.println("Dataset,Instances,Actual_Buggy,Expected_Buggy");
-
             writeDatasetEvaluation(writer, "Dataset A", resultsA, true);
-
             writeDatasetEvaluation(writer, "Dataset B+", resultsBPlus, true);
-
             writeDatasetEvaluation(writer, "Dataset B", resultsB, false);
-
             writeDatasetEvaluation(writer, "Dataset C", resultsC, true);
-
             writer.println();
-
             writer.println("Metric,Value");
-
             writer.printf(Locale.US, "ESTIMATED_AVOIDED,%d%n", estimatedAvoided);
-
             writer.printf(Locale.US, "REDUCTION_BPLUS,%.6f%%%n", reductionBPlus);
-
             writer.printf(Locale.US, "OVERALL_REDUCTION,%.6f%%%n", overallReduction);
-
             writer.printf(Locale.US, "PREDICTED_DROP,%d%n", predictedDrop);
-
             writer.printf(Locale.US, "PREDICTION_REDUCTION,%.6f%%%n", predictionReduction);
         }
     }
 
     private static void writeDatasetEvaluation(PrintWriter writer, String datasetName, DatasetEvaluation result, boolean actualObservable) {
-
         String actualValue = actualObservable ? String.valueOf(result.actualBuggy) : "N/A";
-
         writer.printf(Locale.US, "%s,%d,%s,%d%n", datasetName, result.instances, actualValue, result.expectedBuggy);
     }
 
-    /*
-     * ==========================================================
-     * DATA CLASSES
-     * ==========================================================
-     */
 
+    // Data classes
     private static class DatasetCollection {
 
         private final Instances datasetA;
