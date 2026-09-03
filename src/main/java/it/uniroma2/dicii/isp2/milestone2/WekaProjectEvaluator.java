@@ -1,5 +1,6 @@
 package it.uniroma2.dicii.isp2.milestone2;
 
+import weka.attributeSelection.AttributeSelection;
 import weka.attributeSelection.CfsSubsetEval;
 import weka.attributeSelection.GreedyStepwise;
 import weka.classifiers.AbstractClassifier;
@@ -91,7 +92,6 @@ public class WekaProjectEvaluator {
     public static void main(String[] args) throws Exception {
 
         Locale.setDefault(Locale.US);
-
         createOutputDirectories();
 
         try (PrintWriter errors = new PrintWriter(new FileWriter(ERRORS_FILE))) {
@@ -102,28 +102,18 @@ public class WekaProjectEvaluator {
             validateDataset(allData);
 
             Classifier[] classifiers = {new RandomForest(), new NaiveBayes(), new IBk()};
-
             String[] classifierNames = {"RandomForest", "NaiveBayes", "IBk"};
 
             System.out.println("==============================================");
             System.out.println("STARTING WEKA PROJECT EVALUATION");
             System.out.println("==============================================");
 
-            /*
-             * BeforeDiscard:
-             * tutte le release vengono considerate.
-             * Le metriche non definite rimangono NaN e non vengono
-             * trasformate artificialmente in zero.
-             */
+            // BeforeDiscard: tutte le release vengono considerate. Le metriche non definite rimangono NaN e non vengono trasformate artificialmente in zero.
             run10Times10Fold(allData, classifiers, classifierNames, false, RESULTS_10FOLD_BEFORE, DETAILS_10FOLD_BEFORE);
 
             runWalkForward(allData, classifiers, classifierNames, false, RESULTS_WF_BEFORE, DETAILS_WF_BEFORE);
 
-            /*
-             * AfterDiscard:
-             * vengono escluse automaticamente le valutazioni in cui
-             * il dataset sottoposto a test non contiene entrambe le classi.
-             */
+            // AfterDiscard: vengono escluse automaticamente le valutazioni in cui il dataset sottoposto a test non contiene entrambe le classi.
             run10Times10Fold(allData, classifiers, classifierNames, true, RESULTS_10FOLD_AFTER, DETAILS_10FOLD_AFTER);
 
             runWalkForward(allData, classifiers, classifierNames, true, RESULTS_WF_AFTER, DETAILS_WF_AFTER);
@@ -194,12 +184,8 @@ public class WekaProjectEvaluator {
         }
     }
 
-    /*
-     * ==========================================================
-     * 10-TIMES 10-FOLD CROSS VALIDATION, PER RELEASE
-     * ==========================================================
-     */
 
+    // 10-TIMES 10-FOLD CROSS VALIDATION, PER RELEASE
     private static void run10Times10Fold(Instances allData, Classifier[] classifiers, String[] classifierNames, boolean discardSingleClassReleases, String averagesOutput, String detailsOutput) throws Exception {
 
         String mode = discardSingleClassReleases ? "AfterDiscard" : "BeforeDiscard";
@@ -210,65 +196,47 @@ public class WekaProjectEvaluator {
         List<Integer> releases = getReleaseIds(allData);
 
         try (PrintWriter averageWriter = new PrintWriter(new FileWriter(averagesOutput)); PrintWriter detailWriter = new PrintWriter(new FileWriter(detailsOutput))) {
-
             averageWriter.println("Dataset,Protocol,Classifier,FS,Balancing," + "Precision,Recall,AUC,Kappa,NPofB20," + "Valid_Releases");
-
             detailWriter.println("Dataset,Release_ID,Classifier,FS,Balancing," + "Precision,Recall,AUC,Kappa,NPofB20," + "Valid_Repetitions");
-
             int totalConfigurations = classifiers.length * FS_OPTIONS.length * BALANCING_OPTIONS.length;
-
             int currentConfiguration = 0;
 
             for (int modelIndex = 0; modelIndex < classifiers.length; modelIndex++) {
-
                 for (boolean useFeatureSelection : FS_OPTIONS) {
                     for (boolean useBalancing : BALANCING_OPTIONS) {
-
                         currentConfiguration++;
-
                         String fsValue = useFeatureSelection ? "Yes" : "No";
-
                         String balancingValue = useBalancing ? "Yes" : "No";
-
                         System.out.printf(Locale.US, "[10x10 %s] [%d/%d] %s | FS=%s | BAL=%s%n", mode, currentConfiguration, totalConfigurations, classifierNames[modelIndex], fsValue, balancingValue);
-
                         MetricAccumulator globalMetrics = new MetricAccumulator();
 
                         int validReleases = 0;
 
                         for (int releaseId : releases) {
-
                             Instances releaseData = subsetByReleaseAndPositiveChurn(allData, releaseId);
-
                             if (releaseData.numInstances() < FOLDS) {
                                 logError("10x10-" + mode, releaseId, classifierNames[modelIndex], fsValue, balancingValue, -1, -1, "Less than " + FOLDS + " instances");
                                 continue;
                             }
 
                             if (discardSingleClassReleases && !containsBothClasses(releaseData)) {
-
                                 logError("10x10-" + mode, releaseId, classifierNames[modelIndex], fsValue, balancingValue, -1, -1, "Release discarded because " + "it does not contain both classes");
                                 continue;
                             }
 
                             MetricAccumulator releaseMetrics = evaluateRepeatedCrossValidation(releaseData, classifiers[modelIndex], classifierNames[modelIndex], useFeatureSelection, useBalancing, releaseId, mode);
-
                             if (releaseMetrics.getValidRuns() == 0) {
                                 continue;
                             }
 
                             EvaluationResult releaseResult = releaseMetrics.toResult();
-
                             detailWriter.printf(Locale.US, "ZooKeeper,%d,%s,%s,%s,%s,%s,%s,%s,%s,%d%n", releaseId, classifierNames[modelIndex], fsValue, balancingValue, formatMetric(releaseResult.precision), formatMetric(releaseResult.recall), formatMetric(releaseResult.auc), formatMetric(releaseResult.kappa), formatMetric(releaseResult.npofb20), releaseMetrics.getValidRuns());
-
                             globalMetrics.addResult(releaseResult);
                             validReleases++;
                         }
 
                         EvaluationResult globalResult = globalMetrics.toResult();
-
                         averageWriter.printf(Locale.US, "ZooKeeper,10x10Fold,%s,%s,%s," + "%s,%s,%s,%s,%s,%d%n", classifierNames[modelIndex], fsValue, balancingValue, formatMetric(globalResult.precision), formatMetric(globalResult.recall), formatMetric(globalResult.auc), formatMetric(globalResult.kappa), formatMetric(globalResult.npofb20), validReleases);
-
                         averageWriter.flush();
                         detailWriter.flush();
                     }
@@ -282,10 +250,8 @@ public class WekaProjectEvaluator {
         MetricAccumulator repetitionMetrics = new MetricAccumulator();
 
         for (int seed = 1; seed <= REPETITIONS; seed++) {
-
             try {
                 Instances randomized = new Instances(originalReleaseData);
-
                 randomized.randomize(new Random(seed));
 
                 if (randomized.classAttribute().isNominal()) {
@@ -296,11 +262,8 @@ public class WekaProjectEvaluator {
                 List<PredictionRecord> outOfFoldPredictions = new ArrayList<>();
 
                 int successfulFolds = 0;
-
                 for (int fold = 0; fold < FOLDS; fold++) {
-
                     Instances train = randomized.trainCV(FOLDS, fold, new Random(seed));
-
                     Instances test = randomized.testCV(FOLDS, fold);
 
                     if (train.numInstances() == 0 || test.numInstances() == 0) {
@@ -308,9 +271,7 @@ public class WekaProjectEvaluator {
                     }
 
                     PreparedData prepared = prepareData(train, test, useFeatureSelection, useBalancing, seed);
-
                     int yesIndex = getYesIndex(prepared.train);
-
                     Classifier classifier = AbstractClassifier.makeCopy(baseClassifier);
 
                     classifier.buildClassifier(prepared.train);
@@ -323,14 +284,11 @@ public class WekaProjectEvaluator {
 
                 if (successfulFolds != FOLDS) {
                     logError("10x10-" + mode, releaseId, classifierName, useFeatureSelection ? "Yes" : "No", useBalancing ? "Yes" : "No", seed, -1, "Only " + successfulFolds + " out of " + FOLDS + " folds completed");
-
                     continue;
                 }
 
                 int yesIndex = getYesIndex(randomized);
-
                 EvaluationResult result = new EvaluationResult(evaluation.precision(yesIndex), evaluation.recall(yesIndex), evaluation.areaUnderROC(yesIndex), evaluation.kappa(), calculateNPofB20(outOfFoldPredictions));
-
                 repetitionMetrics.addResult(result);
 
             } catch (Exception exception) {
@@ -341,12 +299,7 @@ public class WekaProjectEvaluator {
         return repetitionMetrics;
     }
 
-    /*
-     * ==========================================================
-     * WALK-FORWARD VALIDATION
-     * ==========================================================
-     */
-
+    // WALK-FORWARD VALIDATION
     private static void runWalkForward(Instances allData, Classifier[] classifiers, String[] classifierNames, boolean discardSingleClassTestSets, String averagesOutput, String detailsOutput) throws Exception {
 
         String mode = discardSingleClassTestSets ? "AfterDiscard" : "BeforeDiscard";
@@ -357,75 +310,54 @@ public class WekaProjectEvaluator {
         List<Integer> releases = getReleaseIds(allData);
 
         try (PrintWriter averageWriter = new PrintWriter(new FileWriter(averagesOutput)); PrintWriter detailWriter = new PrintWriter(new FileWriter(detailsOutput))) {
-
             averageWriter.println("Dataset,Protocol,Classifier,FS,Balancing," + "Precision,Recall,AUC,Kappa,NPofB20,Valid_Runs");
-
             detailWriter.println("Dataset,Train_Through_Release,Test_Release," + "Classifier,FS,Balancing,Precision,Recall," + "AUC,Kappa,NPofB20,Train_Instances,Test_Instances");
 
             int totalConfigurations = classifiers.length * FS_OPTIONS.length * BALANCING_OPTIONS.length;
-
             int currentConfiguration = 0;
 
             for (int modelIndex = 0; modelIndex < classifiers.length; modelIndex++) {
-
                 for (boolean useFeatureSelection : FS_OPTIONS) {
                     for (boolean useBalancing : BALANCING_OPTIONS) {
-
                         currentConfiguration++;
-
                         String fsValue = useFeatureSelection ? "Yes" : "No";
-
                         String balancingValue = useBalancing ? "Yes" : "No";
 
                         System.out.printf(Locale.US, "[WF %s] [%d/%d] %s | FS=%s | BAL=%s%n", mode, currentConfiguration, totalConfigurations, classifierNames[modelIndex], fsValue, balancingValue);
 
                         MetricAccumulator globalMetrics = new MetricAccumulator();
-
                         int validRuns = 0;
 
                         for (int releasePosition = 0; releasePosition < releases.size() - 1; releasePosition++) {
-
                             int trainThroughRelease = releases.get(releasePosition);
-
                             int testRelease = releases.get(releasePosition + 1);
 
                             Instances train = subsetUpToRelease(allData, trainThroughRelease);
-
                             Instances test = subsetByReleaseAndPositiveChurn(allData, testRelease);
 
                             if (train.numInstances() == 0 || test.numInstances() == 0) {
-
                                 logError("WalkForward-" + mode, testRelease, classifierNames[modelIndex], fsValue, balancingValue, -1, -1, "Empty training or testing set");
-
                                 continue;
                             }
 
                             if (discardSingleClassTestSets && !containsBothClasses(test)) {
-
                                 logError("WalkForward-" + mode, testRelease, classifierNames[modelIndex], fsValue, balancingValue, -1, -1, "Test release discarded because " + "it does not contain both classes");
-
                                 continue;
                             }
 
                             try {
                                 PreparedData prepared = prepareData(train, test, useFeatureSelection, useBalancing, testRelease);
-
                                 int yesIndex = getYesIndex(prepared.train);
-
                                 Classifier classifier = AbstractClassifier.makeCopy(classifiers[modelIndex]);
-
                                 classifier.buildClassifier(prepared.train);
 
                                 Evaluation evaluation = new Evaluation(prepared.train);
-
                                 evaluation.evaluateModel(classifier, prepared.test);
 
                                 List<PredictionRecord> predictions = new ArrayList<>();
-
                                 appendPredictionRecords(classifier, prepared.test, prepared.testLocValues, yesIndex, predictions);
 
                                 EvaluationResult result = new EvaluationResult(evaluation.precision(yesIndex), evaluation.recall(yesIndex), evaluation.areaUnderROC(yesIndex), evaluation.kappa(), calculateNPofB20(predictions));
-
                                 detailWriter.printf(Locale.US, "ZooKeeper,%d,%d,%s,%s,%s," + "%s,%s,%s,%s,%s,%d,%d%n", trainThroughRelease, testRelease, classifierNames[modelIndex], fsValue, balancingValue, formatMetric(result.precision), formatMetric(result.recall), formatMetric(result.auc), formatMetric(result.kappa), formatMetric(result.npofb20), prepared.train.numInstances(), prepared.test.numInstances());
 
                                 globalMetrics.addResult(result);
@@ -437,7 +369,6 @@ public class WekaProjectEvaluator {
                         }
 
                         EvaluationResult globalResult = globalMetrics.toResult();
-
                         averageWriter.printf(Locale.US, "ZooKeeper,WalkForward,%s,%s,%s," + "%s,%s,%s,%s,%s,%d%n", classifierNames[modelIndex], fsValue, balancingValue, formatMetric(globalResult.precision), formatMetric(globalResult.recall), formatMetric(globalResult.auc), formatMetric(globalResult.kappa), formatMetric(globalResult.npofb20), validRuns);
 
                         averageWriter.flush();
@@ -448,12 +379,7 @@ public class WekaProjectEvaluator {
         }
     }
 
-    /*
-     * ==========================================================
-     * PRE-PROCESSING
-     * ==========================================================
-     */
-
+    // PRE-PROCESSING
     private static PreparedData prepareData(Instances originalTrain, Instances originalTest, boolean useFeatureSelection, boolean useBalancing, int randomSeed) throws Exception {
 
         double[] testLocValues = extractAttributeValues(originalTest, LOC_COLUMN);
@@ -464,10 +390,7 @@ public class WekaProjectEvaluator {
         train.setClassIndex(train.numAttributes() - 1);
         test.setClassIndex(test.numAttributes() - 1);
 
-        /*
-         * The identifiers are always removed, independently
-         * of Feature Selection.
-         */
+        // The identifiers are always removed, independently of Feature Selection.
         int[] identifierIndices = findAttributeIndices(train, PROJECT_COLUMN, CLASS_COLUMN, RELEASE_COLUMN);
 
         DatasetPair withoutIdentifiers = applyRemove(train, test, identifierIndices, false);
@@ -475,9 +398,7 @@ public class WekaProjectEvaluator {
         train = withoutIdentifiers.train;
         test = withoutIdentifiers.test;
 
-        /*
-         * Feature Selection is learned exclusively on the training set.
-         */
+        // Feature Selection is learned exclusively on the training set.
         if (useFeatureSelection) {
             DatasetPair selectedData = applyFeatureSelection(train, test, SMELL_COLUMN);
 
@@ -485,17 +406,12 @@ public class WekaProjectEvaluator {
             test = selectedData.test;
         }
 
-        /*
-         * Normalize is learned on the training set and then applied
-         * unchanged to the testing set.
-         */
+        // Normalize is learned on the training set and then applied unchanged to the testing set.
         DatasetPair normalizedData = applyNormalize(train, test);
         train = normalizedData.train;
         test = normalizedData.test;
 
-        /*
-         * SMOTE is applied exclusively to the training set.
-         */
+        // SMOTE is applied exclusively to the training set.
         if (useBalancing) {
             train = applySmote(train, randomSeed);
         }
@@ -528,8 +444,7 @@ public class WekaProjectEvaluator {
 
     private static DatasetPair applyFeatureSelection(Instances train, Instances test, String mandatoryAttribute) throws Exception {
 
-        weka.attributeSelection.AttributeSelection selector = new weka.attributeSelection.AttributeSelection();
-
+        AttributeSelection selector = new weka.attributeSelection.AttributeSelection();
         selector.setEvaluator(new CfsSubsetEval());
 
         GreedyStepwise search = new GreedyStepwise();
@@ -561,7 +476,6 @@ public class WekaProjectEvaluator {
         }
 
         int[] indices = indicesToKeep.stream().mapToInt(Integer::intValue).sorted().toArray();
-
         return applyRemove(train, test, indices, true);
     }
 
@@ -572,11 +486,9 @@ public class WekaProjectEvaluator {
         normalize.setInputFormat(train);
 
         Instances normalizedTrain = Filter.useFilter(train, normalize);
-
         Instances normalizedTest = Filter.useFilter(test, normalize);
 
         normalizedTrain.setClassIndex(normalizedTrain.numAttributes() - 1);
-
         normalizedTest.setClassIndex(normalizedTest.numAttributes() - 1);
 
         return new DatasetPair(normalizedTrain, normalizedTest);
@@ -598,33 +510,24 @@ public class WekaProjectEvaluator {
         smote.setInputFormat(train);
 
         Instances balancedTrain = Filter.useFilter(train, smote);
-
         balancedTrain.setClassIndex(balancedTrain.numAttributes() - 1);
 
         return balancedTrain;
     }
 
-    /*
-     * ==========================================================
-     * NPofB20
-     * ==========================================================
-     */
 
+    // NPofB20
     private static void appendPredictionRecords(Classifier classifier, Instances transformedTest, double[] originalLocValues, int yesIndex, List<PredictionRecord> records) throws Exception {
 
         if (transformedTest.numInstances() != originalLocValues.length) {
-
             throw new IllegalArgumentException("Mismatch between test instances and LOC values.");
         }
 
         for (int i = 0; i < transformedTest.numInstances(); i++) {
-
             Instance instance = transformedTest.instance(i);
 
             double[] distribution = classifier.distributionForInstance(instance);
-
             double probabilityYes = distribution[yesIndex];
-
             boolean actuallyBuggy = (int) instance.classValue() == yesIndex;
 
             records.add(new PredictionRecord(probabilityYes, originalLocValues[i], actuallyBuggy));
@@ -674,12 +577,8 @@ public class WekaProjectEvaluator {
         return (double) bugsFound / totalBuggy;
     }
 
-    /*
-     * ==========================================================
-     * DATASET SUBSETS
-     * ==========================================================
-     */
 
+    // Dataset subsets
     private static Instances subsetByRelease(Instances source, int releaseId) {
 
         int releaseIndex = source.attribute(RELEASE_COLUMN).index();
@@ -699,7 +598,6 @@ public class WekaProjectEvaluator {
     private static Instances subsetUpToRelease(Instances source, int maximumRelease) {
 
         int releaseIndex = source.attribute(RELEASE_COLUMN).index();
-
         Instances subset = new Instances(source, 0);
 
         for (Instance instance : source) {
@@ -716,14 +614,12 @@ public class WekaProjectEvaluator {
     private static Instances subsetByReleaseAndPositiveChurn(Instances source, int releaseId) {
 
         int releaseIndex = source.attribute(RELEASE_COLUMN).index();
-
         int churnIndex = source.attribute(CHURN_COLUMN).index();
 
         Instances subset = new Instances(source, 0);
 
         for (Instance instance : source) {
             boolean expectedRelease = (int) instance.value(releaseIndex) == releaseId;
-
             boolean positiveChurn = instance.value(churnIndex) > 0.0;
 
             if (expectedRelease && positiveChurn) {
@@ -738,7 +634,6 @@ public class WekaProjectEvaluator {
     private static List<Integer> getReleaseIds(Instances data) {
 
         int releaseIndex = data.attribute(RELEASE_COLUMN).index();
-
         List<Integer> releases = new ArrayList<>();
 
         for (Instance instance : data) {
@@ -753,12 +648,8 @@ public class WekaProjectEvaluator {
         return releases;
     }
 
-    /*
-     * ==========================================================
-     * VALIDATION HELPERS
-     * ==========================================================
-     */
 
+    // Validation helpers
     private static boolean containsBothClasses(Instances data) {
 
         if (!data.classAttribute().isNominal() || data.classAttribute().numValues() < 2) {
@@ -787,7 +678,6 @@ public class WekaProjectEvaluator {
     private static int getYesIndex(Instances data) {
 
         int index = data.classAttribute().indexOfValue(POSITIVE_CLASS);
-
         if (index < 0) {
             throw new IllegalArgumentException("Positive class '" + POSITIVE_CLASS + "' not found.");
         }
@@ -798,13 +688,11 @@ public class WekaProjectEvaluator {
     private static int getMinorityClassCount(Instances data) {
 
         int[] counts = new int[data.classAttribute().numValues()];
-
         for (Instance instance : data) {
             if (!instance.classIsMissing()) {
                 counts[(int) instance.classValue()]++;
             }
         }
-
         return Arrays.stream(counts).filter(value -> value > 0).min().orElse(0);
     }
 
@@ -830,7 +718,6 @@ public class WekaProjectEvaluator {
         }
 
         int attributeIndex = data.attribute(attributeName).index();
-
         double[] values = new double[data.numInstances()];
 
         for (int i = 0; i < data.numInstances(); i++) {
@@ -853,18 +740,12 @@ public class WekaProjectEvaluator {
         String sanitizedMessage = message == null ? "Unknown error" : message.replace(",", ";").replace("\n", " ").replace("\r", " ");
 
         errorWriter.printf(Locale.US, "%s,%d,%s,%s,%s,%d,%d,%s%n", protocol, release, classifier, featureSelection, balancing, seed, fold, sanitizedMessage);
-
         errorWriter.flush();
 
         System.err.printf("ERROR [%s] release=%d classifier=%s " + "FS=%s balancing=%s seed=%d fold=%d: %s%n", protocol, release, classifier, featureSelection, balancing, seed, fold, sanitizedMessage);
     }
 
-    /*
-     * ==========================================================
-     * DATA CLASSES
-     * ==========================================================
-     */
-
+    // Data classes
     private static class DatasetPair {
         private final Instances train;
         private final Instances test;
@@ -981,13 +862,12 @@ public class WekaProjectEvaluator {
         private int getValidRuns() {
             return validRuns;
         }
-
+        
         private static boolean isFinite(double value) {
             return !Double.isNaN(value) && !Double.isInfinite(value);
         }
 
         private static double average(double sum, int count) {
-
             return count == 0 ? Double.NaN : sum / count;
         }
     }
