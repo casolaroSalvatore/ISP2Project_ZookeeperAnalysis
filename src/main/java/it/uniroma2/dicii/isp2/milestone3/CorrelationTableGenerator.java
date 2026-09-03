@@ -32,7 +32,6 @@ public class CorrelationTableGenerator {
             }
 
         } catch (IOException e) {
-
             throw new RuntimeException("Unable to load config.properties.", e);
         }
     }
@@ -43,13 +42,7 @@ public class CorrelationTableGenerator {
 
     private static final double SIGNIFICANCE_LEVEL = 0.05;
 
-    /*
-     * Impostare a false per replicare la tabella della slide
-     * considerando soltanto le feature predittive.
-     *
-     * Impostare a true se si vuole includere anche Release_ID
-     * come indicatore temporale descrittivo.
-     */
+    // Set true if want to include Release_ID
     private static final boolean INCLUDE_RELEASE_ID = false;
 
     public static void main(String[] args) throws Exception {
@@ -63,7 +56,6 @@ public class CorrelationTableGenerator {
         Instances datasetA = loadDataset(FULL_DATASET);
 
         int smellIndex = findAttributeIndex(datasetA, SMELL_COLUMN_NAME);
-
         int buggyIndex = findAttributeIndex(datasetA, BUGGY_COLUMN_NAME, "Defectiveness");
 
         if (smellIndex < 0 || buggyIndex < 0) {
@@ -71,46 +63,32 @@ public class CorrelationTableGenerator {
         }
 
         double[] smellArrayA = extractNumericValues(datasetA, smellIndex);
-
         double[] bugginessArrayA = extractBugginessValues(datasetA, buggyIndex);
 
         SpearmansCorrelation spearman = new SpearmansCorrelation();
 
         try (PrintWriter writer = new PrintWriter(new FileWriter(OUTPUT_CSV))) {
-
             writer.println("Variable,Mean A,Mean B,Mean C," + "Correlation (rho) NSmells," + "Correlation (rho) Defectiveness");
-
             printConsoleHeader();
 
             for (int attributeIndex = 0; attributeIndex < datasetA.numAttributes(); attributeIndex++) {
-
                 Attribute attribute = datasetA.attribute(attributeIndex);
-
                 if (!attribute.isNumeric() || attributeIndex == buggyIndex) {
                     continue;
                 }
 
                 String variableName = cleanName(attribute.name());
 
-                /*
-                 * Release_ID is an identifier and not a predictive
-                 * software metric. It can optionally be included.
-                 */
+                // Release_ID is an identifier and not a predictive software metric. It can optionally be included.
                 if (!INCLUDE_RELEASE_ID && variableName.equalsIgnoreCase(RELEASE_COLUMN_NAME)) {
                     continue;
                 }
 
                 double[] variableArrayA = extractNumericValues(datasetA, attributeIndex);
-
                 Means means = calculateMeans(datasetA, attributeIndex, smellIndex);
 
-                /*
-                 * Dataset B contains the same instances as B+,
-                 * namely those originally having NSmells > 0.
-                 *
-                 * All feature values remain unchanged, except
-                 * NSmells, which is counterfactually set to zero.
-                 */
+                // Dataset B contains the same instances as B+, namely those originally having NSmells > 0.
+                // All feature values remain unchanged, except NSmells, which is counterfactually set to zero.
                 double meanB = attributeIndex == smellIndex ? 0.0 : means.meanBPlus;
 
                 String correlationWithSmells;
@@ -124,7 +102,6 @@ public class CorrelationTableGenerator {
                 String correlationWithBugginess = formatCorrelation(spearman.correlation(variableArrayA, bugginessArrayA), variableArrayA.length);
 
                 System.out.printf(Locale.US, "%-30s | %10.2f | %10.2f | %10.2f" + " | %15s | %20s%n", variableName, means.meanA, meanB, means.meanC, correlationWithSmells, correlationWithBugginess);
-
                 writer.printf(Locale.US, "%s,%.2f,%.2f,%.2f,%s,%s%n", variableName, means.meanA, meanB, means.meanC, correlationWithSmells, correlationWithBugginess);
             }
         }
@@ -137,9 +114,7 @@ public class CorrelationTableGenerator {
     private static Instances loadDataset(String path) throws Exception {
 
         String header;
-
         try (BufferedReader reader = new BufferedReader(new FileReader(path))) {
-
             header = reader.readLine();
         }
 
@@ -165,31 +140,24 @@ public class CorrelationTableGenerator {
     private static int findAttributeIndex(Instances dataset, String... acceptedNames) {
 
         for (int i = 0; i < dataset.numAttributes(); i++) {
-
             String currentName = cleanName(dataset.attribute(i).name());
-
             for (String acceptedName : acceptedNames) {
-
                 if (currentName.equalsIgnoreCase(acceptedName)) {
                     return i;
                 }
             }
         }
-
         return -1;
     }
 
     private static String cleanName(String name) {
-
         return name.replace("\"", "").trim();
     }
 
     private static double[] extractNumericValues(Instances dataset, int attributeIndex) {
 
         double[] values = new double[dataset.numInstances()];
-
         for (int i = 0; i < dataset.numInstances(); i++) {
-
             Instance instance = dataset.instance(i);
 
             if (instance.isMissing(attributeIndex)) {
@@ -198,16 +166,13 @@ public class CorrelationTableGenerator {
 
             values[i] = instance.value(attributeIndex);
         }
-
         return values;
     }
 
     private static double[] extractBugginessValues(Instances dataset, int buggyIndex) {
 
         double[] values = new double[dataset.numInstances()];
-
         for (int i = 0; i < dataset.numInstances(); i++) {
-
             Instance instance = dataset.instance(i);
 
             if (instance.isMissing(buggyIndex)) {
@@ -224,7 +189,6 @@ public class CorrelationTableGenerator {
                 throw new IllegalArgumentException("Unexpected Bugginess value: " + value);
             }
         }
-
         return values;
     }
 
@@ -239,15 +203,12 @@ public class CorrelationTableGenerator {
         int countC = 0;
 
         for (int i = 0; i < dataset.numInstances(); i++) {
-
             Instance instance = dataset.instance(i);
-
             if (instance.isMissing(attributeIndex) || instance.isMissing(smellIndex)) {
                 continue;
             }
 
             double value = instance.value(attributeIndex);
-
             double smellValue = instance.value(smellIndex);
 
             sumA += value;
@@ -263,11 +224,8 @@ public class CorrelationTableGenerator {
         }
 
         double meanA = countA > 0 ? sumA / countA : Double.NaN;
-
         double meanBPlus = countBPlus > 0 ? sumBPlus / countBPlus : Double.NaN;
-
         double meanC = countC > 0 ? sumC / countC : Double.NaN;
-
         return new Means(meanA, meanBPlus, meanC);
     }
 
@@ -278,16 +236,12 @@ public class CorrelationTableGenerator {
         }
 
         double pValue = calculatePValue(correlation, observations);
-
         String significanceMarker = pValue < SIGNIFICANCE_LEVEL ? "*" : "";
 
         return String.format(Locale.US, "%.2f%s", correlation, significanceMarker);
     }
 
-    /*
-     * Approximate two-tailed p-value based on the
-     * Student t transformation.
-     */
+    // Approximate two-tailed p-value based on the Student t transformation.
     private static double calculatePValue(double correlation, int observations) {
 
         if (observations <= 2 || Double.isNaN(correlation)) {
@@ -299,9 +253,7 @@ public class CorrelationTableGenerator {
         }
 
         double numerator = observations - 2.0;
-
         double denominator = 1.0 - correlation * correlation;
-
         double tStatistic = correlation * Math.sqrt(numerator / denominator);
 
         TDistribution distribution = new TDistribution(observations - 2.0);
@@ -312,7 +264,6 @@ public class CorrelationTableGenerator {
     private static void printConsoleHeader() {
 
         System.out.printf("%-30s | %10s | %10s | %10s" + " | %15s | %20s%n", "Variable", "Mean A", "Mean B", "Mean C", "Corr NSmells", "Corr Defectiveness");
-
         System.out.println("------------------------------------------------" + "----------------------------------------------" + "--------------------------------");
     }
 
