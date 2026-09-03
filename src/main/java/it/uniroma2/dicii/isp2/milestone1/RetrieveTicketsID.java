@@ -9,8 +9,28 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 public class RetrieveTicketsID {
+
+    private static String TICKETS_CSV;
+
+    static {
+        try {
+            Properties configProps = new Properties();
+            try (InputStream input = new FileInputStream("config.properties")) {
+                configProps.load(input);
+            }
+
+            TICKETS_CSV = configProps.getProperty("tickets.csv");
+            if (TICKETS_CSV == null) {
+                throw new RuntimeException("CRITICAL ERROR: Missing parameters in config.properties.");
+            }
+
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to load config.properties.", e);
+        }
+    }
 
     // Helper method to parse the stream
     private static String readAll(Reader rd) throws IOException {
@@ -52,7 +72,7 @@ public class RetrieveTicketsID {
         Integer j = 0, i = 0, total = 1;
 
         // 1. Prepare the CSV file for output
-        String outname = projName + "_BugTickets.csv";
+        String outname = TICKETS_CSV;
         FileWriter fileWriter = new FileWriter(outname);
         fileWriter.append("Ticket ID,Creation Date (OV),Resolution Date (FV),Affected Versions (AV)\n");
 
@@ -63,10 +83,7 @@ public class RetrieveTicketsID {
             // Only gets a max of 1000 at a time, so must do this multiple times if bugs > 1000
             j = i + 1000;
 
-            String url = "https://issues.apache.org/jira/rest/api/2/search?jql=project=%22"
-                    + projName + "%22AND%22issueType%22=%22Bug%22AND(%22status%22=%22closed%22OR"
-                    + "%22status%22=%22resolved%22)AND%22resolution%22=%22fixed%22&fields=key,resolutiondate,versions,created&startAt="
-                    + i.toString() + "&maxResults=" + j.toString();
+            String url = "https://issues.apache.org/jira/rest/api/2/search?jql=project=%22" + projName + "%22AND%22issueType%22=%22Bug%22AND(%22status%22=%22closed%22OR" + "%22status%22=%22resolved%22)AND%22resolution%22=%22fixed%22&fields=key,resolutiondate,versions,created&startAt=" + i.toString() + "&maxResults=" + j.toString();
 
             JSONObject json = readJsonFromUrl(url);
             JSONArray issues = json.getJSONArray("issues");
@@ -100,10 +117,7 @@ public class RetrieveTicketsID {
                 String affectedVersionsStr = affectedVersions.isEmpty() ? "N/A" : String.join("|", affectedVersions);
 
                 // Write the extracted data into the CSV file
-                fileWriter.append(key).append(",")
-                        .append(creationDate).append(",")
-                        .append(resolutionDate).append(",")
-                        .append(affectedVersionsStr).append("\n");
+                fileWriter.append(key).append(",").append(creationDate).append(",").append(resolutionDate).append(",").append(affectedVersionsStr).append("\n");
             }
 
             // Increment index by the number of issues processed

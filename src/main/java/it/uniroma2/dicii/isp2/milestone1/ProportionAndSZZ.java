@@ -6,6 +6,29 @@ import java.util.*;
 
 public class ProportionAndSZZ {
 
+    private static String RELEASES_CSV;
+    private static String TICKETS_CSV;
+    private static String MAPPING_CSV;
+    private static String BUGGINESS_CSV;
+
+    static {
+        try {
+            Properties configProps = new Properties();
+            try (InputStream input = new FileInputStream("config.properties")) {
+                configProps.load(input);
+            }
+            RELEASES_CSV = configProps.getProperty("releases.full.csv");
+            TICKETS_CSV = configProps.getProperty("tickets.csv");
+            MAPPING_CSV = configProps.getProperty("ticket.commit.mapping.csv");
+            BUGGINESS_CSV = configProps.getProperty("bugginess.csv");
+            if (RELEASES_CSV == null || TICKETS_CSV == null || MAPPING_CSV == null || BUGGINESS_CSV == null) {
+                throw new RuntimeException("CRITICAL ERROR: Missing parameters in config.properties.");
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to load config.properties.", e);
+        }
+    }
+
     // Data structure for releases
     static class Release {
         int index;
@@ -35,10 +58,10 @@ public class ProportionAndSZZ {
     }
 
     public static void main(String[] args) {
-        String releaseCsv = "ZOOKEEPERVersionInfo_Full.csv";
-        String ticketsCsv = "ZOOKEEPER_BugTickets.csv";
-        String mappingCsv = "ZOOKEEPER_Bug_Fix_Mapping.csv";
-        String outputCsv = "ZOOKEEPER_Bugginess_Results.csv";
+        String releaseCsv = RELEASES_CSV;
+        String ticketsCsv = TICKETS_CSV;
+        String mappingCsv = MAPPING_CSV;
+        String outputCsv = BUGGINESS_CSV;
 
         try {
             // Data loading
@@ -69,11 +92,7 @@ public class ProportionAndSZZ {
 
         while ((line = br.readLine()) != null) {
             String[] p = line.split(",");
-            list.add(new Release(
-                    Integer.parseInt(p[0]),
-                    p[2],
-                    LocalDate.parse(p[3].substring(0, 10))
-            ));
+            list.add(new Release(Integer.parseInt(p[0]), p[2], LocalDate.parse(p[3].substring(0, 10))));
         }
 
         br.close();
@@ -92,16 +111,13 @@ public class ProportionAndSZZ {
         while ((line = br.readLine()) != null) {
             String[] p = line.split(",");
 
-            if (p.length < 4)
-                continue;
+            if (p.length < 4) continue;
 
             Ticket t = new Ticket();
             t.id = p[0];
             t.ovDate = LocalDate.parse(p[1]);
             t.fvDate = p[2].equals("N/A") ? null : LocalDate.parse(p[2]);
-            t.affectedVersions = p[3].equals("N/A")
-                    ? new ArrayList<>()
-                    : Arrays.asList(p[3].split("\\|"));
+            t.affectedVersions = p[3].equals("N/A") ? new ArrayList<>() : Arrays.asList(p[3].split("\\|"));
 
             map.put(t.id, t);
         }
@@ -129,8 +145,7 @@ public class ProportionAndSZZ {
         for (Ticket t : tickets.values()) {
 
             // Ignore tickets without a fix date
-            if (t.fvDate == null)
-                continue;
+            if (t.fvDate == null) continue;
 
             t.ovIndex = getReleaseIndexAfter(t.ovDate, releases);
             t.fvIndex = getReleaseIndexAfter(t.fvDate, releases);
@@ -147,8 +162,7 @@ public class ProportionAndSZZ {
                 for (String av : t.affectedVersions) {
                     int idx = getReleaseIndexByName(av, releases);
 
-                    if (idx != -1 && idx < oldestAvIndex)
-                        oldestAvIndex = idx;
+                    if (idx != -1 && idx < oldestAvIndex) oldestAvIndex = idx;
                 }
 
                 if (oldestAvIndex != Integer.MAX_VALUE && oldestAvIndex <= t.ovIndex) {
@@ -171,13 +185,10 @@ public class ProportionAndSZZ {
         for (Ticket t : tickets.values()) {
 
             // Filter out unmapped tickets or tickets without files
-            if (t.fvIndex == -1 || t.modifiedFiles.isEmpty())
-                continue;
+            if (t.fvIndex == -1 || t.modifiedFiles.isEmpty()) continue;
 
-            if (t.hasRealIV)
-                withIV.add(t);
-            else
-                withoutIV.add(t);
+            if (t.hasRealIV) withIV.add(t);
+            else withoutIV.add(t);
         }
 
         // Sort tickets with IV by fix date for the moving window
@@ -190,24 +201,18 @@ public class ProportionAndSZZ {
             double pAvg = getMovingWindowP(t.fvDate, withIV, windowSize);
 
             // IV = FV - (FV - OV) * P
-            int estimatedIV = (int) Math.round(
-                    t.fvIndex - (t.fvIndex - t.ovIndex) * pAvg
-            );
+            int estimatedIV = (int) Math.round(t.fvIndex - (t.fvIndex - t.ovIndex) * pAvg);
 
             // Safety check: IV cannot be greater than OV
-            if (estimatedIV > t.ovIndex)
-                estimatedIV = t.ovIndex;
+            if (estimatedIV > t.ovIndex) estimatedIV = t.ovIndex;
 
-            if (estimatedIV < 1)
-                estimatedIV = 1;
+            if (estimatedIV < 1) estimatedIV = 1;
 
             t.ivIndex = estimatedIV;
         }
     }
 
-    private static double getMovingWindowP(LocalDate currentDate,
-                                           List<Ticket> withIV,
-                                           int windowSize) {
+    private static double getMovingWindowP(LocalDate currentDate, List<Ticket> withIV, int windowSize) {
         double sumP = 0;
         int count = 0;
 
@@ -215,13 +220,11 @@ public class ProportionAndSZZ {
         for (int i = withIV.size() - 1; i >= 0; i--) {
             Ticket pastTicket = withIV.get(i);
 
-            if (pastTicket.fvDate.isBefore(currentDate)
-                    || pastTicket.fvDate.isEqual(currentDate)) {
+            if (pastTicket.fvDate.isBefore(currentDate) || pastTicket.fvDate.isEqual(currentDate)) {
                 sumP += pastTicket.pValue;
                 count++;
 
-                if (count == windowSize)
-                    break;
+                if (count == windowSize) break;
             }
         }
 
@@ -229,31 +232,20 @@ public class ProportionAndSZZ {
         return count == 0 ? 1.0 : sumP / count;
     }
 
-    private static void generateBugginessFile(Map<String, Ticket> tickets,
-                                              String outputCsv) throws IOException {
+    private static void generateBugginessFile(Map<String, Ticket> tickets, String outputCsv) throws IOException {
         BufferedWriter writer = new BufferedWriter(new FileWriter(outputCsv));
         writer.write("Release Index,File Name,Bug Ticket,IV,OV,FV,Bugginess\n");
 
         for (Ticket t : tickets.values()) {
 
             // Ignore incorrectly mapped tickets or tickets without modified files
-            if (t.ivIndex == -1 || t.fvIndex == -1 || t.modifiedFiles.isEmpty())
-                continue;
+            if (t.ivIndex == -1 || t.fvIndex == -1 || t.modifiedFiles.isEmpty()) continue;
 
             // SZZ rule: the file is buggy from release IV (included) to FV (excluded)
             for (String file : t.modifiedFiles) {
-                for (int releaseIdx = t.ivIndex;
-                     releaseIdx < t.fvIndex;
-                     releaseIdx++) {
+                for (int releaseIdx = t.ivIndex; releaseIdx < t.fvIndex; releaseIdx++) {
 
-                    writer.write(
-                            releaseIdx + "," +
-                                    file + "," +
-                                    t.id + "," +
-                                    t.ivIndex + "," +
-                                    t.ovIndex + "," +
-                                    t.fvIndex + ",YES\n"
-                    );
+                    writer.write(releaseIdx + "," + file + "," + t.id + "," + t.ivIndex + "," + t.ovIndex + "," + t.fvIndex + ",YES\n");
                 }
             }
         }
@@ -262,22 +254,18 @@ public class ProportionAndSZZ {
     }
 
     // Helper methods
-    private static int getReleaseIndexAfter(LocalDate date,
-                                            List<Release> releases) {
+    private static int getReleaseIndexAfter(LocalDate date, List<Release> releases) {
         for (Release r : releases) {
-            if (r.date.isAfter(date) || r.date.isEqual(date))
-                return r.index;
+            if (r.date.isAfter(date) || r.date.isEqual(date)) return r.index;
         }
 
         // Fallback to the last release
         return releases.get(releases.size() - 1).index;
     }
 
-    private static int getReleaseIndexByName(String name,
-                                             List<Release> releases) {
+    private static int getReleaseIndexByName(String name, List<Release> releases) {
         for (Release r : releases) {
-            if (r.name.equalsIgnoreCase(name))
-                return r.index;
+            if (r.name.equalsIgnoreCase(name)) return r.index;
         }
 
         return -1;

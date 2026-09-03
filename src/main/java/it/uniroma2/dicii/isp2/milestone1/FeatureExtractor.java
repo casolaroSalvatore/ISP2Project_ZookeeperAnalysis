@@ -16,15 +16,53 @@ import java.util.regex.Pattern;
 public class FeatureExtractor {
 
     // Path Configuration
-    private static final String REPO_PATH = "C:\\Users\\casol\\Desktop\\zookeeper";
-    private static final String MAPPED_RELEASES_CSV = "C:\\Users\\casol\\Desktop\\ISPW2\\ISP2Project_ZookeeperAnalysis\\ZOOKEEPER_Mapped_Filtered.csv";
-    private static final String BUGGINESS_CSV = "C:\\Users\\casol\\Desktop\\ISPW2\\ISP2Project_ZookeeperAnalysis\\ZOOKEEPER_Bugginess_Results.csv";
-    private static final String OUTPUT_CSV = "C:\\Users\\casol\\Desktop\\ISPW2\\ISP2Project_ZookeeperAnalysis\\ZOOKEEPER_Final_Dataset.csv";
+    private static String REPO_PATH;
+    private static String MAPPED_RELEASES_CSV;
+    private static String BUGGINESS_CSV;
+    private static String OUTPUT_CSV;
 
-    // SonarQube Configuration (Remove the data!)
-    private static final String SONAR_TOKEN = "squ_4fd20fa19b5da165a3e5d545e7e05dd1dc1e9ba3";
-    private static final String SONAR_PROJECT_KEY = "ISP2Project_ZookeeperAnalysis";
-    private static final String SONAR_URL = "http://localhost:9000";
+    // SonarQube Configuration
+    private static String SONAR_TOKEN;
+    private static String SONAR_PROJECT_KEY;
+    private static String SONAR_URL;
+
+    static {
+        try {
+            Properties configProps = new Properties();
+            try (InputStream input = new FileInputStream("config.properties")) {
+                configProps.load(input);
+            }
+
+            REPO_PATH = configProps.getProperty("repo.path");
+            MAPPED_RELEASES_CSV = configProps.getProperty("mapped.releases.csv");
+            BUGGINESS_CSV = configProps.getProperty("bugginess.csv");
+            OUTPUT_CSV = configProps.getProperty("output.csv");
+            SONAR_PROJECT_KEY = configProps.getProperty("sonar.project.key");
+            SONAR_URL = configProps.getProperty("sonar.url");
+
+            SONAR_TOKEN = System.getenv("SONAR_TOKEN");
+
+            if (SONAR_TOKEN == null) {
+                Properties envProps = new Properties();
+                try (InputStream envInput = new FileInputStream(".env")) {
+                    envProps.load(envInput);
+                    SONAR_TOKEN = envProps.getProperty("SONAR_TOKEN");
+                } catch (FileNotFoundException e) {
+                    System.err.println("File .env non trovato e SONAR_TOKEN non presente nelle variabili d'ambiente.");
+                }
+            }
+
+            if (SONAR_TOKEN == null || SONAR_TOKEN.trim().isEmpty()) {
+                throw new RuntimeException("CRITICAL ERROR: SONAR_TOKEN mancante!");
+            }
+            if (REPO_PATH == null || REPO_PATH.trim().isEmpty()) {
+                throw new RuntimeException("CRITICAL ERROR: Configurazioni mancanti in config.properties!");
+            }
+
+        } catch (IOException e) {
+            throw new RuntimeException("Errore fatale durante l'avvio: Impossibile caricare i file di configurazione.", e);
+        }
+    }
 
     // Data Structures
     static class Release {
@@ -117,7 +155,9 @@ public class FeatureExtractor {
                 for (Map.Entry<String, ProductMetrics> entry : sonarMetrics.entrySet()) {
                     String filePath = entry.getKey();
 
-                    if (filePath.toLowerCase().contains("/test/") || filePath.endsWith("Test.java")) { continue; }
+                    if (filePath.toLowerCase().contains("/test/") || filePath.endsWith("Test.java")) {
+                        continue;
+                    }
 
                     ProductMetrics prod = entry.getValue();
                     FileHistory st = globalHistory.getOrDefault(filePath, new FileHistory());
@@ -153,7 +193,7 @@ public class FeatureExtractor {
                     String bugKey = release.index + "_" + filePath;
                     String bugginess = bugginessMap.getOrDefault(bugKey, "NO");
 
-                    // Scrittura Riga (Rispettando letteralmente l'ordine richiesto)
+                    // Scrittura riga
                     writer.write(String.format(Locale.US, "%s,%s,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%.2f,%d,%d,%d,%d,%.2f,%.2f,%.2f,%.2f,%.3f,%d,%s\n",
                             "ZOOKEEPER", filePath, release.index,
                             prod.loc, prod.nMethods,                 // Size_LOC, N_Methods
@@ -392,7 +432,7 @@ public class FeatureExtractor {
         int currentChgSetSize = mods.size();
         boolean isMultiCommit = currentChgSetSize > 1;
 
-        // PRIMO E UNICO CICLO SUI MODS: Calcoliamo tutto qui senza ripetizioni
+        // Primo e unico clico sui mods: calcoliamo tutto qui senza ripetizioni
         for (String[] mod : mods) {
             String addedStr = mod[0];
             String deletedStr = mod[1];
@@ -431,7 +471,7 @@ public class FeatureExtractor {
             }
         }
 
-        // SECONDO CICLO (Sui file Java reali): Aggiorniamo le metriche usando i dati già pronti
+        // Secondo ciclo (sui file Java reali): aggiorniamo le metriche usando i dati già pronti
         for (Map.Entry<String, int[]> entry : fileModData.entrySet()) {
             String filePath = entry.getKey();
             int added = entry.getValue()[0];
@@ -532,7 +572,7 @@ public class FeatureExtractor {
         String line;
         while ((line = br.readLine()) != null) {
             String[] p = line.split(",");
-            if(p.length >= 7) {
+            if (p.length >= 7) {
                 map.put(p[0] + "_" + p[1], p[6]);
             }
         }

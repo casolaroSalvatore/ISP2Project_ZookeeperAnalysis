@@ -1,20 +1,37 @@
 package it.uniroma2.dicii.isp2.milestone1;
 
 import java.io.*;
+import java.util.Properties;
 
 public class GitCommitMapper {
 
-    public static void main(String[] args) {
+    private static String REPO_PATH;
+    private static String FILTERED_RELEASES_CSV;
+    private static String MAPPED_RELEASES_CSV;
 
-        // Insert the path of the cloned directory
-        String repoPath = "C:\\Users\\casol\\Desktop\\zookeeper";
-
-        // Input & Output file
-        String inputCsv = "ZOOKEEPERVersionInfo_Filtered.csv";
-        String outputCsv = "ZOOKEEPER_Mapped_Filtered.csv";
-
+    static {
         try {
-            processCsvAndMapCommits(inputCsv, outputCsv, repoPath);
+            Properties configProps = new Properties();
+            try (InputStream input = new FileInputStream("config.properties")) {
+                configProps.load(input);
+            }
+
+            REPO_PATH = configProps.getProperty("repo.path");
+            FILTERED_RELEASES_CSV = configProps.getProperty("filtered.releases.csv");
+            MAPPED_RELEASES_CSV = configProps.getProperty("mapped.releases.csv");
+
+            if (REPO_PATH == null || FILTERED_RELEASES_CSV == null || MAPPED_RELEASES_CSV == null) {
+                throw new RuntimeException("CRITICAL ERROR: Parametri mancanti in config.properties!");
+            }
+
+        } catch (IOException e) {
+            throw new RuntimeException("Errore fatale durante l'avvio: Impossibile caricare config.properties.", e);
+        }
+    }
+
+    public static void main(String[] args) {
+        try {
+            processCsvAndMapCommits(FILTERED_RELEASES_CSV, MAPPED_RELEASES_CSV, REPO_PATH);
             System.out.println("Mappatura Git completata con successo!");
         } catch (Exception e) {
             System.out.println("Errore durante la mappatura: " + e.getMessage());
@@ -53,9 +70,7 @@ public class GitCommitMapper {
         String commitHash = "NOT_FOUND";
         try {
             // Prepare the Git command
-            ProcessBuilder builder = new ProcessBuilder(
-                    "git", "log", "--before=" + date, "-n", "1", "--format=%H"
-            );
+            ProcessBuilder builder = new ProcessBuilder("git", "log", "--before=" + date, "-n", "1", "--format=%H");
             // Set the directory on which run the command
             builder.directory(new File(repoDir));
 

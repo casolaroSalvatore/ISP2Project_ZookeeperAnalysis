@@ -30,7 +30,7 @@ public class GetReleaseInfo {
         String projNameJira = "ZOOKEEPER";
         String repoNameGitHub = "apache/zookeeper";
 
-        // 1. Extract releases from Jira (old history)
+        // Extract releases from Jira (old history)
         System.out.println("Starting Jira releases extraction for " + projNameJira + "...");
         String jiraUrl = "https://issues.apache.org/jira/rest/api/2/project/" + projNameJira;
 
@@ -56,7 +56,7 @@ public class GetReleaseInfo {
             e.printStackTrace();
         }
 
-        // 2. Extract releases from GitHub (recent history)
+        // Extract releases from GitHub (recent history)
         System.out.println("Starting GitHub releases extraction for " + repoNameGitHub + "...");
         int page = 1;
         boolean hasMoreReleases = true;
@@ -87,7 +87,7 @@ public class GetReleaseInfo {
         }
         System.out.println("GitHub extraction completed. Total unique releases now: " + releases.size());
 
-        // 3. Sort and generate .csv files
+        // Sort and generate .csv files
 
         // Order releases by date
         Collections.sort(releases, new Comparator<LocalDateTime>() {
@@ -107,10 +107,7 @@ public class GetReleaseInfo {
 
             for (int i = 0; i < releases.size(); i++) {
                 Integer index = i + 1;
-                fileWriterFull.append(index.toString()).append(",")
-                        .append(releaseID.get(releases.get(i))).append(",")
-                        .append(releaseNames.get(releases.get(i))).append(",")
-                        .append(releases.get(i).toString()).append("\n");
+                fileWriterFull.append(index.toString()).append(",").append(releaseID.get(releases.get(i))).append(",").append(releaseNames.get(releases.get(i))).append(",").append(releases.get(i).toString()).append("\n");
             }
             System.out.println("FULL file successfully generated: " + releases.size() + " total releases.");
         } catch (Exception e) {
@@ -127,10 +124,7 @@ public class GetReleaseInfo {
 
             for (int i = 0; i < numberOfValidReleases; i++) {
                 Integer index = i + 1;
-                fileWriterFiltered.append(index.toString()).append(",")
-                        .append(releaseID.get(releases.get(i))).append(",")
-                        .append(releaseNames.get(releases.get(i))).append(",")
-                        .append(releases.get(i).toString()).append("\n");
+                fileWriterFiltered.append(index.toString()).append(",").append(releaseID.get(releases.get(i))).append(",").append(releaseNames.get(releases.get(i))).append(",").append(releases.get(i).toString()).append("\n");
             }
             System.out.println("FILTERED file successfully generated: " + numberOfValidReleases + " valid releases for training.");
         } catch (Exception e) {
