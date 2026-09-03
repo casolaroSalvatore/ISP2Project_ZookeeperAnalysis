@@ -862,7 +862,7 @@ public class WekaProjectEvaluator {
         private int getValidRuns() {
             return validRuns;
         }
-        
+
         private static boolean isFinite(double value) {
             return !Double.isNaN(value) && !Double.isInfinite(value);
         }
