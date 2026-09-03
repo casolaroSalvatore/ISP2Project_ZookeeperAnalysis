@@ -31,22 +31,8 @@ public class SonarCSVExporter {
             if (SONAR_TOKEN == null || SONAR_TOKEN.isBlank() || SONAR_PROJECT_KEY == null || SONAR_URL == null || OUTPUT_CSV == null) {
                 throw new RuntimeException("CRITICAL ERROR: Missing configuration.");
             }
-
         } catch (IOException e) {
             throw new RuntimeException("Unable to load configuration.", e);
-        }
-    }
-
-    // Support class used to manage data before writing it
-    static class ClassMetrics {
-        String className;
-        int loc;
-        int smells;
-
-        public ClassMetrics(String className, int loc, int smells) {
-            this.className = className;
-            this.loc = loc;
-            this.smells = smells;
         }
     }
 
@@ -130,7 +116,7 @@ public class SonarCSVExporter {
                         }
                     }
 
-                    // AUTOMATIC FILTER: Exclude test files, files with LOC < 150, AND files with NO smells
+                    // Automatic filter: Exclude test files, files with LOC < 150, AND files with NO smells
                     if (loc >= 150 && !path.contains("Test") && smells > 0) {
                         list.add(new ClassMetrics(path, loc, smells));
                     }
@@ -143,5 +129,18 @@ public class SonarCSVExporter {
         }
 
         return list;
+    }
+
+    // Support class used to manage data before writing it
+    static class ClassMetrics {
+        String className;
+        int loc;
+        int smells;
+
+        public ClassMetrics(String className, int loc, int smells) {
+            this.className = className;
+            this.loc = loc;
+            this.smells = smells;
+        }
     }
 }
