@@ -7,18 +7,35 @@ import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.converters.CSVLoader;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.Locale;
+import java.util.Properties;
+
 
 public class CorrelationTableGenerator {
 
-    private static final String FULL_DATASET = "C:\\Users\\casol\\Desktop\\ISPW2\\" + "ISP2Project_ZookeeperAnalysis\\" + "Milestone1_DatasetCreation\\" + "ZOOKEEPER_Final_Dataset.csv";
+    private static String FULL_DATASET;
+    private static String OUTPUT_CSV;
 
-    private static final String OUTPUT_CSV = "C:\\Users\\casol\\Desktop\\ISPW2\\" + "ISP2Project_ZookeeperAnalysis\\" + "Milestone3_WhatIfAnalysis\\" + "Milestone3_Correlation_Table.csv";
+    static {
+        try {
+            Properties configProps = new Properties();
+            try (InputStream input = new FileInputStream("config.properties")) {
+                configProps.load(input);
+            }
+
+            FULL_DATASET = configProps.getProperty("weka.dataset.csv");
+            OUTPUT_CSV = configProps.getProperty("milestone3.correlation.csv");
+
+            if (FULL_DATASET == null || OUTPUT_CSV == null) {
+                throw new RuntimeException("CRITICAL ERROR: Missing parameters in config.properties.");
+            }
+
+        } catch (IOException e) {
+
+            throw new RuntimeException("Unable to load config.properties.", e);
+        }
+    }
 
     private static final String SMELL_COLUMN_NAME = "NSmells";
     private static final String BUGGY_COLUMN_NAME = "Bugginess";
@@ -33,7 +50,7 @@ public class CorrelationTableGenerator {
      * Impostare a true se si vuole includere anche Release_ID
      * come indicatore temporale descrittivo.
      */
-    private static final boolean INCLUDE_RELEASE_ID = true;
+    private static final boolean INCLUDE_RELEASE_ID = false;
 
     public static void main(String[] args) throws Exception {
 

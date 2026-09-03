@@ -1,7 +1,6 @@
 package it.uniroma2.dicii.isp2.milestone3;
 
 import weka.classifiers.Classifier;
-import weka.classifiers.Evaluation;
 import weka.classifiers.trees.RandomForest;
 import weka.core.Instance;
 import weka.core.Instances;
@@ -10,28 +9,39 @@ import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.Normalize;
 import weka.filters.unsupervised.attribute.Remove;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.*;
 import java.util.Locale;
+import java.util.Properties;
 
 public class WekaWhatIfAnalyzer {
 
-    private static final String FULL_DATASET = "C:\\Users\\casol\\Desktop\\ISPW2\\" + "ISP2Project_ZookeeperAnalysis\\" + "Milestone1_DatasetCreation\\" + "ZOOKEEPER_Final_Dataset.csv";
+    private static String FULL_DATASET;
+    private static String OUTPUT_CSV;
 
-    private static final String OUTPUT_CSV = "C:\\Users\\casol\\Desktop\\ISPW2\\" + "ISP2Project_ZookeeperAnalysis\\" + "Milestone3_WhatIfAnalysis\\" + "Milestone3_WhatIfAnalysis_RF_NoFS_NoSMOTE.csv";
-
-    private static final String INSTANCE_TRANSITIONS_CSV = "C:\\Users\\casol\\Desktop\\ISPW2\\" + "ISP2Project_ZookeeperAnalysis\\" + "Milestone3_WhatIfAnalysis\\" + "Milestone3_BPlus_B_Transitions.csv";
 
     private static final String PROJECT_COLUMN = "Project_Name";
     private static final String CLASS_COLUMN = "Class_Name";
     private static final String RELEASE_COLUMN = "Release_ID";
     private static final String SMELL_COLUMN = "NSmells";
     private static final String POSITIVE_CLASS = "YES";
+
+    static {
+        try {
+            Properties configProps = new Properties();
+            try (InputStream input = new FileInputStream("config.properties")) {
+                configProps.load(input);
+            }
+
+            FULL_DATASET = configProps.getProperty("weka.dataset.csv");
+            OUTPUT_CSV = configProps.getProperty("milestone3.whatif.output.csv");
+            if (FULL_DATASET == null || OUTPUT_CSV == null) {
+                throw new RuntimeException("CRITICAL ERROR: Missing parameters in config.properties.");
+            }
+
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to load config.properties.", e);
+        }
+    }
 
     public static void main(String[] args) throws Exception {
 
@@ -51,15 +61,9 @@ public class WekaWhatIfAnalyzer {
         int smellIndex = datasetA.attribute(SMELL_COLUMN).index();
 
         /*
-         * Preserve information used to identify each original row.
-         * These attributes will not be provided to the classifier.
-         */
-        List<InstanceIdentifier> identifiersBPlus = new ArrayList<>();
-
-        /*
          * 2. Construct C, B+ and B.
          */
-        DatasetCollection datasets = createWhatIfDatasets(datasetA, smellIndex, identifiersBPlus);
+        DatasetCollection datasets = createWhatIfDatasets(datasetA, smellIndex);
 
         System.out.println("Datasets created:");
         System.out.println(" - Dataset A:  " + datasetA.numInstances() + " instances");
@@ -114,21 +118,27 @@ public class WekaWhatIfAnalyzer {
         DatasetEvaluation resultsB = evaluateDataset(bClassifierA, normalized.datasetB, yesIndex);
 
         /*
-         * 7. Compare B+ and B instance by instance.
-         *
-         * Every instance in B has the same position as its
-         * corresponding original instance in B+.
+         * 7. Calculate the aggregate Actual-versus-Expected
+         * results for the What-If Analysis.
          */
-        TransitionResults transitions = compareBPlusAndB(bClassifierA, normalized.datasetBPlus, normalized.datasetB, identifiersBPlus, yesIndex, INSTANCE_TRANSITIONS_CSV);
 
-        printResults(resultsA, resultsC, resultsBPlus, resultsB, transitions);
+        long estimatedAvoided = resultsBPlus.actualBuggy - resultsB.expectedBuggy;
 
-        writeSummary(resultsA, resultsC, resultsBPlus, resultsB, transitions);
+        long predictedDrop = resultsBPlus.expectedBuggy - resultsB.expectedBuggy;
+
+        double reductionBPlus = percentage(estimatedAvoided, resultsBPlus.actualBuggy);
+
+        double overallReduction = percentage(estimatedAvoided, resultsA.actualBuggy);
+
+        double predictionReduction = percentage(predictedDrop, resultsBPlus.expectedBuggy);
+
+        printResults(resultsA, resultsBPlus, resultsB, resultsC, estimatedAvoided, reductionBPlus, overallReduction, predictedDrop, predictionReduction);
+
+        writeSummary(resultsA, resultsBPlus, resultsB, resultsC, estimatedAvoided, reductionBPlus, overallReduction, predictedDrop, predictionReduction);
 
         System.out.println();
         System.out.println("Analysis completed successfully.");
         System.out.println("Summary: " + OUTPUT_CSV);
-        System.out.println("Transitions: " + INSTANCE_TRANSITIONS_CSV);
     }
 
     /*
@@ -190,17 +200,11 @@ public class WekaWhatIfAnalyzer {
      * ==========================================================
      */
 
-    private static DatasetCollection createWhatIfDatasets(Instances datasetA, int smellIndex, List<InstanceIdentifier> identifiersBPlus) {
+    private static DatasetCollection createWhatIfDatasets(Instances datasetA, int smellIndex) {
 
         Instances datasetC = new Instances(datasetA, 0);
         Instances datasetBPlus = new Instances(datasetA, 0);
         Instances datasetB = new Instances(datasetA, 0);
-
-        int projectIndex = datasetA.attribute(PROJECT_COLUMN).index();
-
-        int classIndex = datasetA.attribute(CLASS_COLUMN).index();
-
-        int releaseIndex = datasetA.attribute(RELEASE_COLUMN).index();
 
         for (int i = 0; i < datasetA.numInstances(); i++) {
 
@@ -220,7 +224,6 @@ public class WekaWhatIfAnalyzer {
 
                 datasetB.add(counterfactualInstance);
 
-                identifiersBPlus.add(new InstanceIdentifier(getStringValue(originalInstance, projectIndex), getStringValue(originalInstance, classIndex), (int) originalInstance.value(releaseIndex), smellValue));
             }
         }
 
@@ -229,16 +232,6 @@ public class WekaWhatIfAnalyzer {
         datasetB.setClassIndex(datasetA.classIndex());
 
         return new DatasetCollection(datasetA, datasetC, datasetBPlus, datasetB);
-    }
-
-    private static String getStringValue(Instance instance, int attributeIndex) {
-
-        if (instance.attribute(attributeIndex).isNominal() || instance.attribute(attributeIndex).isString()) {
-
-            return instance.stringValue(attributeIndex);
-        }
-
-        return String.valueOf(instance.value(attributeIndex));
     }
 
     /*
@@ -307,161 +300,6 @@ public class WekaWhatIfAnalyzer {
         }
     }
 
-    /*
-     * ==========================================================
-     * AGGREGATE EVALUATION
-     * ==========================================================
-     */
-
-    private static DatasetEvaluation evaluateDataset(Classifier model, Instances dataset, int yesIndex) throws Exception {
-
-        Evaluation evaluation = new Evaluation(dataset);
-        evaluation.evaluateModel(model, dataset);
-
-        long actualBuggy = Math.round(evaluation.numTruePositives(yesIndex) + evaluation.numFalseNegatives(yesIndex));
-
-        long predictedBuggy = Math.round(evaluation.numTruePositives(yesIndex) + evaluation.numFalsePositives(yesIndex));
-
-        long truePositives = Math.round(evaluation.numTruePositives(yesIndex));
-
-        long falsePositives = Math.round(evaluation.numFalsePositives(yesIndex));
-
-        long falseNegatives = Math.round(evaluation.numFalseNegatives(yesIndex));
-
-        long trueNegatives = Math.round(evaluation.numTrueNegatives(yesIndex));
-
-        return new DatasetEvaluation(dataset.numInstances(), actualBuggy, predictedBuggy, truePositives, falsePositives, falseNegatives, trueNegatives);
-    }
-
-    /*
-     * ==========================================================
-     * PAIRED B+ / B COMPARISON
-     * ==========================================================
-     */
-
-    private static TransitionResults compareBPlusAndB(Classifier model, Instances datasetBPlus, Instances datasetB, List<InstanceIdentifier> identifiers, int yesIndex, String outputPath) throws Exception {
-
-        if (datasetBPlus.numInstances() != datasetB.numInstances()) {
-
-            throw new IllegalArgumentException("B+ and B must contain the same number of instances.");
-        }
-
-        if (datasetBPlus.numInstances() != identifiers.size()) {
-
-            throw new IllegalArgumentException("The number of identifiers does not match B+.");
-        }
-
-        long yesToNo = 0;
-        long noToYes = 0;
-        long yesToYes = 0;
-        long noToNo = 0;
-
-        long preventableActualBuggy = 0;
-        long actualBuggyInBPlus = 0;
-        long predictedBuggyInBPlus = 0;
-
-        try (PrintWriter writer = new PrintWriter(new FileWriter(outputPath))) {
-
-            writer.println("Project_Name,Class_Name,Release_ID," + "Original_NSmells,Actual_Bugginess," + "Predicted_BPlus,Probability_BPlus_YES," + "Predicted_B,Probability_B_YES,Transition," + "Preventable_Actual_Buggy");
-
-            for (int i = 0; i < datasetBPlus.numInstances(); i++) {
-
-                Instance original = datasetBPlus.instance(i);
-
-                Instance counterfactual = datasetB.instance(i);
-
-                double[] probabilityOriginal = model.distributionForInstance(original);
-
-                double[] probabilityCounterfactual = model.distributionForInstance(counterfactual);
-
-                int predictedOriginal = indexOfMaximum(probabilityOriginal);
-
-                int predictedCounterfactual = indexOfMaximum(probabilityCounterfactual);
-
-                boolean actualBuggy = (int) original.classValue() == yesIndex;
-
-                boolean predictedOriginalBuggy = predictedOriginal == yesIndex;
-
-                boolean predictedCounterfactualBuggy = predictedCounterfactual == yesIndex;
-
-                if (actualBuggy) {
-                    actualBuggyInBPlus++;
-                }
-
-                if (predictedOriginalBuggy) {
-                    predictedBuggyInBPlus++;
-                }
-
-                String transition;
-
-                if (predictedOriginalBuggy && !predictedCounterfactualBuggy) {
-
-                    yesToNo++;
-                    transition = "YES_TO_NO";
-
-                } else if (!predictedOriginalBuggy && predictedCounterfactualBuggy) {
-
-                    noToYes++;
-                    transition = "NO_TO_YES";
-
-                } else if (predictedOriginalBuggy) {
-
-                    yesToYes++;
-                    transition = "YES_TO_YES";
-
-                } else {
-
-                    noToNo++;
-                    transition = "NO_TO_NO";
-                }
-
-                boolean preventable = actualBuggy && predictedOriginalBuggy && !predictedCounterfactualBuggy;
-
-                if (preventable) {
-                    preventableActualBuggy++;
-                }
-
-                InstanceIdentifier identifier = identifiers.get(i);
-
-                writer.printf(Locale.US, "%s,%s,%d,%.4f,%s,%s,%.8f,%s,%.8f,%s,%s%n", escapeCsv(identifier.projectName), escapeCsv(identifier.className), identifier.releaseId, identifier.originalSmells, actualBuggy ? "YES" : "NO", predictedOriginalBuggy ? "YES" : "NO", probabilityOriginal[yesIndex], predictedCounterfactualBuggy ? "YES" : "NO", probabilityCounterfactual[yesIndex], transition, preventable ? "YES" : "NO");
-            }
-        }
-
-        long netPredictedReduction = yesToNo - noToYes;
-
-        double preventableOutOfActualBPlus = percentage(preventableActualBuggy, actualBuggyInBPlus);
-
-        double preventableOutOfPredictedBPlus = percentage(preventableActualBuggy, predictedBuggyInBPlus);
-
-        return new TransitionResults(yesToNo, noToYes, yesToYes, noToNo, netPredictedReduction, preventableActualBuggy, actualBuggyInBPlus, predictedBuggyInBPlus, preventableOutOfActualBPlus, preventableOutOfPredictedBPlus);
-    }
-
-    private static int indexOfMaximum(double[] values) {
-
-        if (values == null || values.length == 0) {
-            throw new IllegalArgumentException("Empty probability distribution.");
-        }
-
-        int maximumIndex = 0;
-
-        for (int i = 1; i < values.length; i++) {
-            if (values[i] > values[maximumIndex]) {
-                maximumIndex = i;
-            }
-        }
-
-        return maximumIndex;
-    }
-
-    private static double percentage(long numerator, long denominator) {
-
-        if (denominator == 0) {
-            return Double.NaN;
-        }
-
-        return ((double) numerator / denominator) * 100.0;
-    }
-
     private static int getYesIndex(Instances dataset) {
 
         int yesIndex = dataset.classAttribute().indexOfValue(POSITIVE_CLASS);
@@ -473,44 +311,89 @@ public class WekaWhatIfAnalyzer {
         return yesIndex;
     }
 
+    private static double percentage(long numerator, long denominator) {
+        if (denominator == 0) {
+            return Double.NaN;
+        }
+        return ((double) numerator / denominator) * 100.0;
+    }
+
+    /*
+     * ==========================================================
+     * AGGREGATE EVALUATION
+     * ==========================================================
+     */
+
+    private static DatasetEvaluation evaluateDataset(Classifier model, Instances dataset, int yesIndex) throws Exception {
+
+        long actualBuggy = 0;
+        long expectedBuggy = 0;
+
+        for (int i = 0; i < dataset.numInstances(); i++) {
+
+            Instance instance = dataset.instance(i);
+
+            if ((int) instance.classValue() == yesIndex) {
+                actualBuggy++;
+            }
+
+            double predictedClass = model.classifyInstance(instance);
+
+            if ((int) predictedClass == yesIndex) {
+                expectedBuggy++;
+            }
+        }
+
+        return new DatasetEvaluation(dataset.numInstances(), actualBuggy, expectedBuggy);
+    }
+
     /*
      * ==========================================================
      * OUTPUT
      * ==========================================================
      */
 
-    private static void printResults(DatasetEvaluation resultsA, DatasetEvaluation resultsC, DatasetEvaluation resultsBPlus, DatasetEvaluation resultsB, TransitionResults transitions) {
+    private static void printResults(DatasetEvaluation resultsA, DatasetEvaluation resultsBPlus, DatasetEvaluation resultsB, DatasetEvaluation resultsC, long estimatedAvoided, double reductionBPlus, double overallReduction, long predictedDrop, double predictionReduction) {
 
         System.out.println();
-        System.out.println("AGGREGATE PREDICTION RESULTS");
-        System.out.println("---------------------------------------------------------------");
-        System.out.printf("%-12s | %-10s | %-13s | %-15s%n", "Dataset", "Instances", "Actual buggy", "Predicted buggy");
-        System.out.println("---------------------------------------------------------------");
+        System.out.println("ACTUAL AND EXPECTED RESULTS");
+        System.out.println("--------------------------------------------------------------");
 
-        printDatasetResult("A", resultsA);
-        printDatasetResult("C", resultsC);
-        printDatasetResult("B+", resultsBPlus);
-        printDatasetResult("B", resultsB);
+        System.out.printf("%-12s | %-10s | %-15s | %-15s%n", "Dataset", "Instances", "Actual buggy", "Expected buggy");
+
+        System.out.println("--------------------------------------------------------------");
+
+        printDatasetResult("A", resultsA, true);
+
+        printDatasetResult("B+", resultsBPlus, true);
+
+        printDatasetResult("B", resultsB, false);
+
+        printDatasetResult("C", resultsC, true);
 
         System.out.println();
-        System.out.println("PAIRED TRANSITIONS FROM B+ TO B");
-        System.out.println("---------------------------------------------------------------");
-        System.out.println("YES -> NO:  " + transitions.yesToNo);
-        System.out.println("NO  -> YES: " + transitions.noToYes);
-        System.out.println("YES -> YES: " + transitions.yesToYes);
-        System.out.println("NO  -> NO:  " + transitions.noToNo);
-        System.out.println("Net reduction in positive predictions: " + transitions.netPredictedReduction);
-        System.out.println("Potentially preventable actual buggy instances: " + transitions.preventableActualBuggy);
-        System.out.printf(Locale.US, "Potentially preventable / actual buggy in B+: %.4f%%%n", transitions.preventableOutOfActualBPlus);
-        System.out.printf(Locale.US, "Potentially preventable / predicted buggy in B+: %.4f%%%n", transitions.preventableOutOfPredictedBPlus);
+        System.out.println("AGGREGATE WHAT-IF RESULTS");
+        System.out.println("--------------------------------------------------------------");
+
+        System.out.println("Estimated avoided instances: " + estimatedAvoided);
+
+        System.out.printf(Locale.US, "Reduction over actual buggy in B+: %.6f%%%n", reductionBPlus);
+
+        System.out.printf(Locale.US, "Reduction over actual buggy in A: %.6f%%%n", overallReduction);
+
+        System.out.println("Direct expected-prediction drop: " + predictedDrop);
+
+        System.out.printf(Locale.US, "Prediction reduction over B+: %.6f%%%n", predictionReduction);
     }
 
-    private static void printDatasetResult(String datasetName, DatasetEvaluation result) {
+    private static void printDatasetResult(String datasetName, DatasetEvaluation result, boolean actualObservable) {
 
-        System.out.printf(Locale.US, "%-12s | %-10d | %-13d | %-15d%n", datasetName, result.instances, result.actualBuggy, result.predictedBuggy);
+        String actualValue = actualObservable ? String.valueOf(result.actualBuggy) : "N/A";
+
+        System.out.printf(Locale.US, "%-12s | %-10d | %-15s | %-15d%n", datasetName, result.instances, actualValue, result.expectedBuggy);
     }
 
-    private static void writeSummary(DatasetEvaluation resultsA, DatasetEvaluation resultsC, DatasetEvaluation resultsBPlus, DatasetEvaluation resultsB, TransitionResults transitions) throws Exception {
+    private static void writeSummary(DatasetEvaluation resultsA, DatasetEvaluation resultsBPlus, DatasetEvaluation resultsB, DatasetEvaluation resultsC, long estimatedAvoided, double reductionBPlus, double overallReduction, long predictedDrop, double predictionReduction) throws Exception {
 
         try (PrintWriter writer = new PrintWriter(new FileWriter(OUTPUT_CSV))) {
 
@@ -520,60 +403,37 @@ public class WekaWhatIfAnalyzer {
 
             writer.println();
 
-            writer.println("Dataset,Instances,Actual_Buggy," + "Predicted_Buggy,TP,FP,FN,TN");
+            writer.println("Dataset,Instances,Actual_Buggy,Expected_Buggy");
 
-            writeDatasetEvaluation(writer, "Dataset A", resultsA);
-            writeDatasetEvaluation(writer, "Dataset C", resultsC);
-            writeDatasetEvaluation(writer, "Dataset B+", resultsBPlus);
-            writeDatasetEvaluation(writer, "Dataset B", resultsB);
+            writeDatasetEvaluation(writer, "Dataset A", resultsA, true);
 
-            writer.println();
+            writeDatasetEvaluation(writer, "Dataset B+", resultsBPlus, true);
 
-            writer.println("Transition,Count");
+            writeDatasetEvaluation(writer, "Dataset B", resultsB, false);
 
-            writer.printf(Locale.US, "YES_TO_NO,%d%n", transitions.yesToNo);
-
-            writer.printf(Locale.US, "NO_TO_YES,%d%n", transitions.noToYes);
-
-            writer.printf(Locale.US, "YES_TO_YES,%d%n", transitions.yesToYes);
-
-            writer.printf(Locale.US, "NO_TO_NO,%d%n", transitions.noToNo);
-
-            writer.printf(Locale.US, "NET_POSITIVE_REDUCTION,%d%n", transitions.netPredictedReduction);
-
-            writer.printf(Locale.US, "PREVENTABLE_ACTUAL_BUGGY,%d%n", transitions.preventableActualBuggy);
+            writeDatasetEvaluation(writer, "Dataset C", resultsC, true);
 
             writer.println();
 
             writer.println("Metric,Value");
 
-            writer.printf(Locale.US, "Preventable_Out_Of_Actual_Buggy_BPlus,%.6f%%%n", transitions.preventableOutOfActualBPlus);
+            writer.printf(Locale.US, "ESTIMATED_AVOIDED,%d%n", estimatedAvoided);
 
-            writer.printf(Locale.US, "Preventable_Out_Of_Predicted_Buggy_BPlus,%.6f%%%n", transitions.preventableOutOfPredictedBPlus);
+            writer.printf(Locale.US, "REDUCTION_BPLUS,%.6f%%%n", reductionBPlus);
 
-            writer.printf(Locale.US, "Preventable_Out_Of_Actual_Buggy_A,%.6f%%%n", percentage(transitions.preventableActualBuggy, resultsA.actualBuggy));
+            writer.printf(Locale.US, "OVERALL_REDUCTION,%.6f%%%n", overallReduction);
+
+            writer.printf(Locale.US, "PREDICTED_DROP,%d%n", predictedDrop);
+
+            writer.printf(Locale.US, "PREDICTION_REDUCTION,%.6f%%%n", predictionReduction);
         }
     }
 
-    private static void writeDatasetEvaluation(PrintWriter writer, String datasetName, DatasetEvaluation result) {
+    private static void writeDatasetEvaluation(PrintWriter writer, String datasetName, DatasetEvaluation result, boolean actualObservable) {
 
-        writer.printf(Locale.US, "%s,%d,%d,%d,%d,%d,%d,%d%n", datasetName, result.instances, result.actualBuggy, result.predictedBuggy, result.truePositives, result.falsePositives, result.falseNegatives, result.trueNegatives);
-    }
+        String actualValue = actualObservable ? String.valueOf(result.actualBuggy) : "N/A";
 
-    private static String escapeCsv(String value) {
-
-        if (value == null) {
-            return "";
-        }
-
-        String escaped = value.replace("\"", "\"\"");
-
-        if (escaped.contains(",") || escaped.contains("\"") || escaped.contains("\n") || escaped.contains("\r")) {
-
-            return "\"" + escaped + "\"";
-        }
-
-        return escaped;
+        writer.printf(Locale.US, "%s,%d,%s,%d%n", datasetName, result.instances, actualValue, result.expectedBuggy);
     }
 
     /*
@@ -598,71 +458,16 @@ public class WekaWhatIfAnalyzer {
         }
     }
 
-    private static class InstanceIdentifier {
-
-        private final String projectName;
-        private final String className;
-        private final int releaseId;
-        private final double originalSmells;
-
-        private InstanceIdentifier(String projectName, String className, int releaseId, double originalSmells) {
-
-            this.projectName = projectName;
-            this.className = className;
-            this.releaseId = releaseId;
-            this.originalSmells = originalSmells;
-        }
-    }
-
     private static class DatasetEvaluation {
 
         private final long instances;
         private final long actualBuggy;
-        private final long predictedBuggy;
-        private final long truePositives;
-        private final long falsePositives;
-        private final long falseNegatives;
-        private final long trueNegatives;
+        private final long expectedBuggy;
 
-        private DatasetEvaluation(long instances, long actualBuggy, long predictedBuggy, long truePositives, long falsePositives, long falseNegatives, long trueNegatives) {
-
+        private DatasetEvaluation(long instances, long actualBuggy, long expectedBuggy) {
             this.instances = instances;
             this.actualBuggy = actualBuggy;
-            this.predictedBuggy = predictedBuggy;
-            this.truePositives = truePositives;
-            this.falsePositives = falsePositives;
-            this.falseNegatives = falseNegatives;
-            this.trueNegatives = trueNegatives;
-        }
-    }
-
-    private static class TransitionResults {
-
-        private final long yesToNo;
-        private final long noToYes;
-        private final long yesToYes;
-        private final long noToNo;
-
-        private final long netPredictedReduction;
-        private final long preventableActualBuggy;
-        private final long actualBuggyInBPlus;
-        private final long predictedBuggyInBPlus;
-
-        private final double preventableOutOfActualBPlus;
-        private final double preventableOutOfPredictedBPlus;
-
-        private TransitionResults(long yesToNo, long noToYes, long yesToYes, long noToNo, long netPredictedReduction, long preventableActualBuggy, long actualBuggyInBPlus, long predictedBuggyInBPlus, double preventableOutOfActualBPlus, double preventableOutOfPredictedBPlus) {
-
-            this.yesToNo = yesToNo;
-            this.noToYes = noToYes;
-            this.yesToYes = yesToYes;
-            this.noToNo = noToNo;
-            this.netPredictedReduction = netPredictedReduction;
-            this.preventableActualBuggy = preventableActualBuggy;
-            this.actualBuggyInBPlus = actualBuggyInBPlus;
-            this.predictedBuggyInBPlus = predictedBuggyInBPlus;
-            this.preventableOutOfActualBPlus = preventableOutOfActualBPlus;
-            this.preventableOutOfPredictedBPlus = preventableOutOfPredictedBPlus;
+            this.expectedBuggy = expectedBuggy;
         }
     }
 }
