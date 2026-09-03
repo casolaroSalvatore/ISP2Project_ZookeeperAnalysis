@@ -1,4 +1,88 @@
 Protocol,Release,Classifier,FS,Balancing,Seed,Fold,Error
+10x10-BeforeDiscard,13,RandomForest,No,No,-1,-1,Less than 10 instances
+10x10-BeforeDiscard,20,RandomForest,No,No,-1,-1,Less than 10 instances
+10x10-BeforeDiscard,4,RandomForest,No,Yes,1,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,RandomForest,No,Yes,2,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,RandomForest,No,Yes,3,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,RandomForest,No,Yes,4,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,RandomForest,No,Yes,5,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,RandomForest,No,Yes,6,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,RandomForest,No,Yes,7,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,RandomForest,No,Yes,8,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,RandomForest,No,Yes,9,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,RandomForest,No,Yes,10,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,13,RandomForest,No,Yes,-1,-1,Less than 10 instances
+10x10-BeforeDiscard,20,RandomForest,No,Yes,-1,-1,Less than 10 instances
+10x10-BeforeDiscard,13,RandomForest,Yes,No,-1,-1,Less than 10 instances
+10x10-BeforeDiscard,20,RandomForest,Yes,No,-1,-1,Less than 10 instances
+10x10-BeforeDiscard,4,RandomForest,Yes,Yes,1,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,RandomForest,Yes,Yes,2,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,RandomForest,Yes,Yes,3,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,RandomForest,Yes,Yes,4,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,RandomForest,Yes,Yes,5,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,RandomForest,Yes,Yes,6,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,RandomForest,Yes,Yes,7,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,RandomForest,Yes,Yes,8,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,RandomForest,Yes,Yes,9,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,RandomForest,Yes,Yes,10,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,13,RandomForest,Yes,Yes,-1,-1,Less than 10 instances
+10x10-BeforeDiscard,20,RandomForest,Yes,Yes,-1,-1,Less than 10 instances
+10x10-BeforeDiscard,13,NaiveBayes,No,No,-1,-1,Less than 10 instances
+10x10-BeforeDiscard,20,NaiveBayes,No,No,-1,-1,Less than 10 instances
+10x10-BeforeDiscard,4,NaiveBayes,No,Yes,1,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,NaiveBayes,No,Yes,2,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,NaiveBayes,No,Yes,3,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,NaiveBayes,No,Yes,4,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,NaiveBayes,No,Yes,5,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,NaiveBayes,No,Yes,6,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,NaiveBayes,No,Yes,7,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,NaiveBayes,No,Yes,8,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,NaiveBayes,No,Yes,9,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,NaiveBayes,No,Yes,10,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,13,NaiveBayes,No,Yes,-1,-1,Less than 10 instances
+10x10-BeforeDiscard,20,NaiveBayes,No,Yes,-1,-1,Less than 10 instances
+10x10-BeforeDiscard,13,NaiveBayes,Yes,No,-1,-1,Less than 10 instances
+10x10-BeforeDiscard,20,NaiveBayes,Yes,No,-1,-1,Less than 10 instances
+10x10-BeforeDiscard,4,NaiveBayes,Yes,Yes,1,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,NaiveBayes,Yes,Yes,2,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,NaiveBayes,Yes,Yes,3,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,NaiveBayes,Yes,Yes,4,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,NaiveBayes,Yes,Yes,5,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,NaiveBayes,Yes,Yes,6,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,NaiveBayes,Yes,Yes,7,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,NaiveBayes,Yes,Yes,8,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,NaiveBayes,Yes,Yes,9,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,NaiveBayes,Yes,Yes,10,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,13,NaiveBayes,Yes,Yes,-1,-1,Less than 10 instances
+10x10-BeforeDiscard,20,NaiveBayes,Yes,Yes,-1,-1,Less than 10 instances
+10x10-BeforeDiscard,13,IBk,No,No,-1,-1,Less than 10 instances
+10x10-BeforeDiscard,20,IBk,No,No,-1,-1,Less than 10 instances
+10x10-BeforeDiscard,4,IBk,No,Yes,1,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,IBk,No,Yes,2,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,IBk,No,Yes,3,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,IBk,No,Yes,4,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,IBk,No,Yes,5,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,IBk,No,Yes,6,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,IBk,No,Yes,7,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,IBk,No,Yes,8,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,IBk,No,Yes,9,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,IBk,No,Yes,10,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,13,IBk,No,Yes,-1,-1,Less than 10 instances
+10x10-BeforeDiscard,20,IBk,No,Yes,-1,-1,Less than 10 instances
+10x10-BeforeDiscard,13,IBk,Yes,No,-1,-1,Less than 10 instances
+10x10-BeforeDiscard,20,IBk,Yes,No,-1,-1,Less than 10 instances
+10x10-BeforeDiscard,4,IBk,Yes,Yes,1,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,IBk,Yes,Yes,2,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,IBk,Yes,Yes,3,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,IBk,Yes,Yes,4,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,IBk,Yes,Yes,5,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,IBk,Yes,Yes,6,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,IBk,Yes,Yes,7,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,IBk,Yes,Yes,8,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,IBk,Yes,Yes,9,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,4,IBk,Yes,Yes,10,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-BeforeDiscard,13,IBk,Yes,Yes,-1,-1,Less than 10 instances
+10x10-BeforeDiscard,20,IBk,Yes,Yes,-1,-1,Less than 10 instances
 WalkForward-BeforeDiscard,13,RandomForest,No,No,-1,-1,Empty training or testing set
 WalkForward-BeforeDiscard,13,RandomForest,No,Yes,-1,-1,Empty training or testing set
 WalkForward-BeforeDiscard,13,RandomForest,Yes,No,-1,-1,Empty training or testing set
@@ -11,6 +95,102 @@ WalkForward-BeforeDiscard,13,IBk,No,No,-1,-1,Empty training or testing set
 WalkForward-BeforeDiscard,13,IBk,No,Yes,-1,-1,Empty training or testing set
 WalkForward-BeforeDiscard,13,IBk,Yes,No,-1,-1,Empty training or testing set
 WalkForward-BeforeDiscard,13,IBk,Yes,Yes,-1,-1,Empty training or testing set
+10x10-AfterDiscard,6,RandomForest,No,No,-1,-1,Release discarded because it does not contain both classes
+10x10-AfterDiscard,13,RandomForest,No,No,-1,-1,Less than 10 instances
+10x10-AfterDiscard,20,RandomForest,No,No,-1,-1,Less than 10 instances
+10x10-AfterDiscard,4,RandomForest,No,Yes,1,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,RandomForest,No,Yes,2,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,RandomForest,No,Yes,3,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,RandomForest,No,Yes,4,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,RandomForest,No,Yes,5,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,RandomForest,No,Yes,6,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,RandomForest,No,Yes,7,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,RandomForest,No,Yes,8,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,RandomForest,No,Yes,9,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,RandomForest,No,Yes,10,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,6,RandomForest,No,Yes,-1,-1,Release discarded because it does not contain both classes
+10x10-AfterDiscard,13,RandomForest,No,Yes,-1,-1,Less than 10 instances
+10x10-AfterDiscard,20,RandomForest,No,Yes,-1,-1,Less than 10 instances
+10x10-AfterDiscard,6,RandomForest,Yes,No,-1,-1,Release discarded because it does not contain both classes
+10x10-AfterDiscard,13,RandomForest,Yes,No,-1,-1,Less than 10 instances
+10x10-AfterDiscard,20,RandomForest,Yes,No,-1,-1,Less than 10 instances
+10x10-AfterDiscard,4,RandomForest,Yes,Yes,1,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,RandomForest,Yes,Yes,2,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,RandomForest,Yes,Yes,3,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,RandomForest,Yes,Yes,4,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,RandomForest,Yes,Yes,5,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,RandomForest,Yes,Yes,6,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,RandomForest,Yes,Yes,7,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,RandomForest,Yes,Yes,8,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,RandomForest,Yes,Yes,9,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,RandomForest,Yes,Yes,10,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,6,RandomForest,Yes,Yes,-1,-1,Release discarded because it does not contain both classes
+10x10-AfterDiscard,13,RandomForest,Yes,Yes,-1,-1,Less than 10 instances
+10x10-AfterDiscard,20,RandomForest,Yes,Yes,-1,-1,Less than 10 instances
+10x10-AfterDiscard,6,NaiveBayes,No,No,-1,-1,Release discarded because it does not contain both classes
+10x10-AfterDiscard,13,NaiveBayes,No,No,-1,-1,Less than 10 instances
+10x10-AfterDiscard,20,NaiveBayes,No,No,-1,-1,Less than 10 instances
+10x10-AfterDiscard,4,NaiveBayes,No,Yes,1,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,NaiveBayes,No,Yes,2,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,NaiveBayes,No,Yes,3,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,NaiveBayes,No,Yes,4,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,NaiveBayes,No,Yes,5,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,NaiveBayes,No,Yes,6,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,NaiveBayes,No,Yes,7,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,NaiveBayes,No,Yes,8,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,NaiveBayes,No,Yes,9,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,NaiveBayes,No,Yes,10,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,6,NaiveBayes,No,Yes,-1,-1,Release discarded because it does not contain both classes
+10x10-AfterDiscard,13,NaiveBayes,No,Yes,-1,-1,Less than 10 instances
+10x10-AfterDiscard,20,NaiveBayes,No,Yes,-1,-1,Less than 10 instances
+10x10-AfterDiscard,6,NaiveBayes,Yes,No,-1,-1,Release discarded because it does not contain both classes
+10x10-AfterDiscard,13,NaiveBayes,Yes,No,-1,-1,Less than 10 instances
+10x10-AfterDiscard,20,NaiveBayes,Yes,No,-1,-1,Less than 10 instances
+10x10-AfterDiscard,4,NaiveBayes,Yes,Yes,1,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,NaiveBayes,Yes,Yes,2,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,NaiveBayes,Yes,Yes,3,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,NaiveBayes,Yes,Yes,4,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,NaiveBayes,Yes,Yes,5,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,NaiveBayes,Yes,Yes,6,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,NaiveBayes,Yes,Yes,7,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,NaiveBayes,Yes,Yes,8,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,NaiveBayes,Yes,Yes,9,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,NaiveBayes,Yes,Yes,10,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,6,NaiveBayes,Yes,Yes,-1,-1,Release discarded because it does not contain both classes
+10x10-AfterDiscard,13,NaiveBayes,Yes,Yes,-1,-1,Less than 10 instances
+10x10-AfterDiscard,20,NaiveBayes,Yes,Yes,-1,-1,Less than 10 instances
+10x10-AfterDiscard,6,IBk,No,No,-1,-1,Release discarded because it does not contain both classes
+10x10-AfterDiscard,13,IBk,No,No,-1,-1,Less than 10 instances
+10x10-AfterDiscard,20,IBk,No,No,-1,-1,Less than 10 instances
+10x10-AfterDiscard,4,IBk,No,Yes,1,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,IBk,No,Yes,2,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,IBk,No,Yes,3,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,IBk,No,Yes,4,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,IBk,No,Yes,5,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,IBk,No,Yes,6,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,IBk,No,Yes,7,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,IBk,No,Yes,8,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,IBk,No,Yes,9,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,IBk,No,Yes,10,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,6,IBk,No,Yes,-1,-1,Release discarded because it does not contain both classes
+10x10-AfterDiscard,13,IBk,No,Yes,-1,-1,Less than 10 instances
+10x10-AfterDiscard,20,IBk,No,Yes,-1,-1,Less than 10 instances
+10x10-AfterDiscard,6,IBk,Yes,No,-1,-1,Release discarded because it does not contain both classes
+10x10-AfterDiscard,13,IBk,Yes,No,-1,-1,Less than 10 instances
+10x10-AfterDiscard,20,IBk,Yes,No,-1,-1,Less than 10 instances
+10x10-AfterDiscard,4,IBk,Yes,Yes,1,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,IBk,Yes,Yes,2,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,IBk,Yes,Yes,3,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,IBk,Yes,Yes,4,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,IBk,Yes,Yes,5,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,IBk,Yes,Yes,6,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,IBk,Yes,Yes,7,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,IBk,Yes,Yes,8,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,IBk,Yes,Yes,9,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,4,IBk,Yes,Yes,10,-1,IllegalStateException: SMOTE cannot be applied because the minority class contains fewer than 2 instances.
+10x10-AfterDiscard,6,IBk,Yes,Yes,-1,-1,Release discarded because it does not contain both classes
+10x10-AfterDiscard,13,IBk,Yes,Yes,-1,-1,Less than 10 instances
+10x10-AfterDiscard,20,IBk,Yes,Yes,-1,-1,Less than 10 instances
 WalkForward-AfterDiscard,6,RandomForest,No,No,-1,-1,Test release discarded because it does not contain both classes
 WalkForward-AfterDiscard,13,RandomForest,No,No,-1,-1,Empty training or testing set
 WalkForward-AfterDiscard,20,RandomForest,No,No,-1,-1,Test release discarded because it does not contain both classes
