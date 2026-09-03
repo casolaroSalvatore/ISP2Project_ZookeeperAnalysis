@@ -7,17 +7,35 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 public class SonarCSVExporter {
 
-    private static final String SONAR_TOKEN = "squ_4fd20fa19b5da165a3e5d545e7e05dd1dc1e9ba3";
-    private static final String SONAR_PROJECT_KEY = "ISP2Project_ZookeeperAnalysis_Testing";
-    private static final String SONAR_URL = "http://localhost:9000";
-    private static final String OUTPUT_CSV = "C:\\Users\\casol\\Desktop\\ISPW2\\ISP2Project_ZookeeperAnalysis\\Milestone4_AutomatedRefactoring\\ClassSelection.csv";
+    private static String SONAR_TOKEN;
+    private static String SONAR_PROJECT_KEY;
+    private static String SONAR_URL;
+    private static String OUTPUT_CSV;
+
+    static {
+        try {
+            Properties configProps = new Properties();
+            try (InputStream input = new FileInputStream("config.properties")) {
+                configProps.load(input);
+            }
+
+            SONAR_TOKEN = System.getenv("SONAR_TOKEN");
+            SONAR_PROJECT_KEY = configProps.getProperty("sonar.project.key.testing");
+            SONAR_URL = configProps.getProperty("sonar.url");
+            OUTPUT_CSV = configProps.getProperty("milestone4.classselection.csv");
+
+            if (SONAR_TOKEN == null || SONAR_TOKEN.isBlank() || SONAR_PROJECT_KEY == null || SONAR_URL == null || OUTPUT_CSV == null) {
+                throw new RuntimeException("CRITICAL ERROR: Missing configuration.");
+            }
+
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to load configuration.", e);
+        }
+    }
 
     // Support class used to manage data before writing it
     static class ClassMetrics {
@@ -40,8 +58,7 @@ public class SonarCSVExporter {
         // SORTING:
         // 1. By NSmells descending (from largest to smallest)
         // 2. In case of ties, by LOC descending (from largest to smallest)
-        metricsList.sort(Comparator.comparingInt((ClassMetrics c) -> c.smells).reversed()
-                .thenComparing(Comparator.comparingInt((ClassMetrics c) -> c.loc).reversed()));
+        metricsList.sort(Comparator.comparingInt((ClassMetrics c) -> c.smells).reversed().thenComparing(Comparator.comparingInt((ClassMetrics c) -> c.loc).reversed()));
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(OUTPUT_CSV))) {
             writer.write("Class Name,LOC,NSmells\n");
@@ -63,8 +80,7 @@ public class SonarCSVExporter {
         String encodedAuth = Base64.getEncoder().encodeToString(authString.getBytes(StandardCharsets.UTF_8));
 
         while (hasMore) {
-            String urlStr = String.format("%s/api/measures/component_tree?component=%s&metricKeys=ncloc,code_smells&qualifiers=FIL&p=%d&ps=%d",
-                    SONAR_URL, SONAR_PROJECT_KEY, page, pageSize);
+            String urlStr = String.format("%s/api/measures/component_tree?component=%s&metricKeys=ncloc,code_smells&qualifiers=FIL&p=%d&ps=%d", SONAR_URL, SONAR_PROJECT_KEY, page, pageSize);
 
             URL url = new URL(urlStr);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
